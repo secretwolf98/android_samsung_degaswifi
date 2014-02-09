@@ -20,6 +20,8 @@
 # definition file).
 #
 
+ENABLE_HWC_GC_PATH   ?= true
+
 # Platform
 TARGET_BOARD_PLATFORM := mrvl
 
@@ -45,9 +47,9 @@ BOARD_CUSTOM_BOOTIMG_MK 	 := device/samsung/degaswifi/degas-mkbootimg.mk
 BOARD_CUSTOM_MK_BOOTIMG		 := device/samsung/degaswifi/degas-mkbootimg
 BOARD_KERNEL_BASE            := 0x10000000
 BOARD_KERNEL_PAGESIZE        := 2048
-BOARD_MKBOOTIMG_ARGS 	     := --dt device/samsung/degaswifi/rootdir/boot.img-dt --ramdisk_offset 0x01000000
+BOARD_MKBOOTIMG_ARGS 	     := --dt device/samsung/degaswifi/rootdir/etc/boot.img-dt --ramdisk_offset 0x01000000
 TARGET_KERNEL_SOURCE         := kernel/samsung/degas
-TARGET_KERNEL_CONFIG         := blackhawk_lt02_defconfig
+TARGET_KERNEL_CONFIG         := pxa1088_degaswifi_eur_defconfig
 
 # Audio
 BOARD_USES_LEGACY_LIST := true
@@ -121,22 +123,3 @@ TW_NO_USB_STORAGE := true
 TW_NO_REBOOT_BOOTLOADER := true
 TW_HAS_DOWNLOAD_MODE := true
 
-# Block_Build
-Bliss_Build_Block := 1
-
-# BlissPop Configs
-BLISS_WIPE_CACHES := 0
-BLISSIFY := true
-BLISS_O3 := true
-BLISS_GRAPHITE := false
-BLISS_STRICT := true
-BLISS_KRAIT := false
-BLISS_PIPE := false
-TARGET_TC_ROM := 4.8
-TARGET_TC_KERNEL := 4.8
-TARGET_GCC_VERSION_EXP := $(TARGET_TC_ROM)
-TARGET_KERNEL_CUSTOM_TOOLCHAIN := $(TARGET_TC_KERNEL)
-WITH_LZMA_OTA := false
-
-#SaberMod
--include vendor/bliss/config/sm.mk

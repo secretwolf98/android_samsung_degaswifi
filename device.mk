@@ -17,6 +17,8 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
 # Also get non-open-source specific aspects if available
 $(call inherit-product-if-exists, vendor/samsung/degaswifiue/degaswifi-vendor.mk)
 
+PRODUCT_CHARACTERISTICS := tablet
+
 # Overlay
 DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 
@@ -36,7 +38,16 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.software.sip.xml:system/etc/permissions/android.software.sip.xml	\
     frameworks/native/data/etc/tablet_core_hardware.xml:system/etc/permissions/tablet_core_hardware.xml
 
-PRODUCT_CHARACTERISTICS := tablet
+
+# OMX
+PRODUCT_PACKAGES += \
+	lib_driver_cmd_mrvl \
+	libHWComposerGC \
+    libion \
+	libGLES_android \
+
+
+
 
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     persist.sys.usb.config=mtp
@@ -87,10 +98,6 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/media/media_codecs.xml:system/etc/media_codecs.xml \
     $(LOCAL_PATH)/media/media_profiles.xml:system/etc/media_profiles.xml
 
-# OMX
-PRODUCT_PACKAGES += \
-    libion
-
 # Power
 PRODUCT_PACKAGES += \
     libxml2 \
@@ -115,7 +122,7 @@ PRODUCT_PACKAGES += \
     hostapd \
     MarvellWirelessDaemon \
     wpa_supplicant \
-    wpa_supplicant.conf
+    wpa_supplicant.conf 
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/wifi/p2p_supplicant_overlay.conf:system/etc/wifi/p2p_supplicant_overlay.conf \
