@@ -22,5 +22,5 @@
 LOCAL_PATH := $(call my-dir)
 
 ifneq ($(filter lt02wifiue,$(TARGET_DEVICE)),)
-include $(call all-subdir-makefiles,$(LOCAL_PATH))
+include $(call all-makefiles-under,$(LOCAL_PATH))
 endif

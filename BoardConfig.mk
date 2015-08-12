@@ -20,7 +20,7 @@
 # definition file).
 #
 
-LOCAL_PATH := $(LOCAL_PATH)
+LOCAL_PATH := device/samsung/lt02wifiue
 
 # Platform
 TARGET_BOARD_PLATFORM := mrvl
