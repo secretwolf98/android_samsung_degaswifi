@@ -1,0 +1,23 @@
+#
+# system.prop for lt02wifiue
+#
+
+camera2.portability.force_api=1
+
+# set opengles version as 0x20000
+ro.opengles.version=131072
+
+# rotation setting in potrait mode.
+ro.sf.hwrotation=270
+
+# lcd density
+ro.sf.lcd_density=160
+
+# wifi only
+ro.carrier=wifi-only
+
+# telephone configuration path
+ro.tel.config.path=/system/etc/tel/
+
+# adaptive backlight
+ro.cm.hardware.cabc=/sys/class/mdnie/mdnie/cabc
