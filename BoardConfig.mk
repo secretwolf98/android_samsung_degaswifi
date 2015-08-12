@@ -112,7 +112,7 @@ WIFI_DRIVER_FW_PATH_STA          := "/system/etc/firmware/mrvl/sd8787_uapsta.bin
 WIFI_DRIVER_FW_PATH_AP           := "/system/etc/firmware/mrvl/sd8787_uapsta.bin"
 
 # TWRP
-DEVICE_RESOLUTION := 1024x600
+TW_THEME := LANDSCAPE_MDPI
 BOARD_HAS_NO_REAL_SDCARD := true
 RECOVERY_SDCARD_ON_DATA := true
 TW_NO_USB_STORAGE := true

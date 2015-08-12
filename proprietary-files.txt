@@ -34,7 +34,7 @@ usr/lib/alsa-lib/libasound_module_pcm_phone.so
 # Audio Alsa config
 usr/share/alsa/alsa.conf
 usr/share/alsa/cards/aliases.conf
-usr/share/alsa/pcm/center_lfe.conf
+usr/share/alsa/pcm/centor_lfe.conf
 usr/share/alsa/pcm/default.conf
 usr/share/alsa/pcm/dmix.conf
 usr/share/alsa/pcm/dpl.conf
@@ -82,18 +82,6 @@ etc/audio/Tx_ControlParams_SECVOIP_WIRED_HEADSET_WIDEBAND.txt
 etc/audio/Tx_ControlParams_SPEAKER_WIDEBAND.txt
 etc/audio/Tx_ControlParams_WIRED_HEADPHONE_WIDEBAND.txt
 etc/audio/Tx_ControlParams_WIRED_HEADSET_WIDEBAND.txt
-etc/audio_Videocall/LVVEFS_Rx_Configuration.txt
-etc/audio_Videocall/LVVEFS_Tx_Configuration.txt
-etc/audio_Videocall/Rx_ControlParams_Videocall_BLUETOOTH_HEADSET.txt
-etc/audio_Videocall/Rx_ControlParams_Videocall_EARPIECE_WIDEBAND.txt
-etc/audio_Videocall/Rx_ControlParams_Videocall_SPEAKER_WIDEBAND.txt
-etc/audio_Videocall/Rx_ControlParams_Videocall_WIRED_HEADPHONE_WIDEBAND.txt
-etc/audio_Videocall/Rx_ControlParams_Videocall_WIRED_HEADSET_WIDEBAND.txt
-etc/audio_Videocall/Tx_ControlParams_Videocall_BLUETOOTH_HEADSET.txt
-etc/audio_Videocall/Tx_ControlParams_Videocall_EARPIECE_WIDEBAND.txt
-etc/audio_Videocall/Tx_ControlParams_Videocall_SPEAKER_WIDEBAND.txt
-etc/audio_Videocall/Tx_ControlParams_Videocall_WIRED_HEADPHONE_WIDEBAND.txt
-etc/audio_Videocall/Tx_ControlParams_Videocall_WIRED_HEADSET_WIDEBAND.txt
 etc/audio_VR/LVVEFS_Rx_Configuration.txt
 etc/audio_VR/LVVEFS_Tx_Configuration.txt
 etc/audio_VR/Rx_ControlParams_VR_BLUETOOTH_HEADSET.txt
@@ -106,18 +94,6 @@ etc/audio_VR/Tx_ControlParams_VR_EARPIECE_WIDEBAND.txt
 etc/audio_VR/Tx_ControlParams_VR_SPEAKER_WIDEBAND.txt
 etc/audio_VR/Tx_ControlParams_VR_WIRED_HEADPHONE_WIDEBAND.txt
 etc/audio_VR/Tx_ControlParams_VR_WIRED_HEADSET_WIDEBAND.txt
-etc/audio_VR_driving/LVVEFS_Rx_Configuration.txt
-etc/audio_VR_driving/LVVEFS_Tx_Configuration.txt
-etc/audio_VR_driving/Rx_ControlParams_VR_driving_BLUETOOTH_HEADSET.txt
-etc/audio_VR_driving/Rx_ControlParams_VR_driving_EARPIECE_WIDEBAND.txt
-etc/audio_VR_driving/Rx_ControlParams_VR_driving_SPEAKER_WIDEBAND.txt
-etc/audio_VR_driving/Rx_ControlParams_VR_driving_WIRED_HEADPHONE_WIDEBAND.txt
-etc/audio_VR_driving/Rx_ControlParams_VR_driving_WIRED_HEADSET_WIDEBAND.txt
-etc/audio_VR_driving/Tx_ControlParams_VR_DRIVING_BLUETOOTH_HEADSET.txt
-etc/audio_VR_driving/Tx_ControlParams_VR_DRIVING_EARPIECE_WIDEBAND.txt
-etc/audio_VR_driving/Tx_ControlParams_VR_DRIVING_SPEAKER_WIDEBAND.txt
-etc/audio_VR_driving/Tx_ControlParams_VR_DRIVING_WIRED_HEADPHONE_WIDEBAND.txt
-etc/audio_VR_driving/Tx_ControlParams_VR_DRIVING_WIRED_HEADSET_WIDEBAND.txt
 
 # Bluetooth & WIFI
 etc/firmware/mrvl/bt_cal_data.conf
@@ -237,7 +213,6 @@ bin/simal
 bin/tel_launch_lt02.sh
 bin/telmon
 bin/vcm
-etc/plmn_se13.bin
 etc/tel/ttc/audio_gain_calibration.xml
 etc/tel/ttc/audio_avc.nvm
 etc/tel/ttc/audio_config.nvm
@@ -252,13 +227,13 @@ etc/tel/ttc/audio_HLPF.nvm
 etc/tel/ttc/audio_misc.nvm
 etc/tel/ttc/audio_MSAmain.nvm
 etc/tel/ttc/audio_ns.nvm
-etc/tel/kunlun/dataonly/COMCfg.csv
+etc/tel/kunlun/dataOnly/COMCfg.csv
 etc/tel/kunlun/COMCfg.csv
 etc/tel/kunlun/DipChannelChange.nvm
 etc/tel/kunlun/LyraConfig.nvm
 etc/tel/kunlun/RFPmaxReductionConfig.nvm
 etc/tel/kunlun/TTPCom_NRAM2_ABMM_WRITEABLE_DATA.gki
-etc/tel/rfcg/LyraConfig_T7.nvm
+etc/tel/rfcfg/LyraConfig_T7.nvm
 etc/tel/.audiorc
 etc/tel/Boerne_DIAG.mdb.txt
 etc/tel/diag_bsp.cfg
@@ -270,7 +245,7 @@ etc/tel/diag_udp.cfg
 etc/tel/diag_usb.cfg
 etc/tel/nvm_uncheck_file.cfg
 etc/tel/ramdump_loglist
-lin/libatparser.so
+lib/libatparser.so
 lib/libfactoryutil.so
 lib/libmarvell-ril.so
 lib/libomission_avoidance.so
