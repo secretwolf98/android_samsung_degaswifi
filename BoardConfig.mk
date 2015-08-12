@@ -20,8 +20,6 @@
 # definition file).
 #
 
-LOCAL_PATH := device/samsung/lt02wifiue
-
 # Platform
 TARGET_BOARD_PLATFORM := mrvl
 
@@ -40,7 +38,7 @@ TARGET_BOOTLOADER_BOARD_NAME := PXA986
 TARGET_NO_BOOTLOADER := true
 
 # Include path
-TARGET_SPECIFIC_HEADER_PATH := $(LOCAL_PATH)/include
+TARGET_SPECIFIC_HEADER_PATH := device/samsung/lt02wifiue/include
 
 # Kernel
 BOARD_KERNEL_BASE            := 0x10000000
@@ -52,7 +50,7 @@ TARGET_KERNEL_CONFIG         := pxa986_lt02_defconfig
 TARGET_KERNEL_VARIANT_CONFIG := pxa986_lt02wifiue_defconfig
 
 # Bluetooth
-BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := $(LOCAL_PATH)/bluetooth
+BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/samsung/lt02wifiue/bluetooth
 BOARD_HAVE_BLUETOOTH := true
 BOARD_HAVE_BLUETOOTH_MRVL := true
 
@@ -95,8 +93,8 @@ COMMON_GLOBAL_CFLAGS += -DADD_LEGACY_ACQUIRE_BUFFER_SYMBOL
 
 # Recovery
 COMMON_GLOBAL_CFLAGS += -DNO_SECURE_DISCARD
-TARGET_RECOVERY_DEVICE_DIRS += $(LOCAL_PATH)
-TARGET_RECOVERY_FSTAB := $(LOCAL_PATH)/rootdir/etc/fstab.pxa988
+TARGET_RECOVERY_DEVICE_DIRS += device/samsung/lt02wifiue
+TARGET_RECOVERY_FSTAB := device/samsung/lt02wifiue/rootdir/etc/fstab.pxa988
 TARGET_RECOVERY_PIXEL_FORMAT := "RGB_565"
 TARGET_USERIMAGES_USE_EXT4 := true
 

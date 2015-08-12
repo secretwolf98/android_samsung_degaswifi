@@ -18,7 +18,7 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
 $(call inherit-product-if-exists, vendor/samsung/lt02wifiue/lt02wifiue-vendor.mk)
 
 # Overlay
-DEVICE_PACKAGE_OVERLAYS += device/samsung/lt02wifiue/overlay
+DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 
 # Permissions
 PRODUCT_COPY_FILES += \
