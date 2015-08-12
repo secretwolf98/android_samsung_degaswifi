@@ -48,7 +48,8 @@ BOARD_KERNEL_CMDLINE         := androidboot.selinux=permissive
 BOARD_KERNEL_PAGESIZE        := 2048
 BOARD_MKBOOTIMG_ARGS         := --ramdisk_offset 0x01000000
 TARGET_KERNEL_SOURCE         := kernel/samsung/lt02-common
-TARGET_KERNEL_VARIANT_CONFIG := pxa986_lt02_defconfig
+TARGET_KERNEL_CONFIG         := pxa986_lt02_defconfig
+TARGET_KERNEL_VARIANT_CONFIG := pxa986_lt02wifiue_defconfig
 
 # Bluetooth
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := $(LOCAL_PATH)/bluetooth
