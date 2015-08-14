@@ -5,7 +5,7 @@ $(call inherit-product, device/common/gps/gps_us_supl.mk)
 
 $(call inherit-product-if-exists, vendor/samsung/lt02wifi/lt02wifi-vendor.mk)
 
-DEVICE_PACKAGE_OVERLAYS += device/samsung/lt02wifi/overlay
+DEVICE_PACKAGE_OVERLAYS += device/samsung/lt023g/overlay
 
 # Set wifi-only before it's set by generic_no_telephony.mk
 PRODUCT_PROPERTY_OVERRIDES += \
