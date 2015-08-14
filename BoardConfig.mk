@@ -43,7 +43,6 @@ TARGET_SPECIFIC_HEADER_PATH := device/samsung/lt02wifiue/include
 # Kernel
 BOARD_CUSTOM_BOOTIMG_MK      := device/samsung/lt02wifiue/mkbootimg.mk
 BOARD_KERNEL_BASE            := 0x10000000
-BOARD_KERNEL_CMDLINE         := androidboot.selinux=permissive
 BOARD_KERNEL_PAGESIZE        := 2048
 BOARD_MKBOOTIMG_ARGS         := --ramdisk_offset 0x01000000
 TARGET_KERNEL_SOURCE         := kernel/samsung/lt02-common
