@@ -41,8 +41,9 @@ TARGET_NO_BOOTLOADER := true
 TARGET_SPECIFIC_HEADER_PATH := device/samsung/lt02wifiue/include
 
 # Kernel
+BOARD_CUSTOM_BOOTIMG_MK      := device/samsung/lt02wifiue/mkbootimg.mk
 BOARD_KERNEL_BASE            := 0x10000000
-BOARD_KERNEL_CMDLINE         := androidboot.selinux=permissive 
+BOARD_KERNEL_CMDLINE         := androidboot.selinux=permissive
 BOARD_KERNEL_PAGESIZE        := 2048
 BOARD_MKBOOTIMG_ARGS         := --ramdisk_offset 0x01000000
 TARGET_KERNEL_SOURCE         := kernel/samsung/lt02-common
@@ -95,6 +96,7 @@ COMMON_GLOBAL_CFLAGS += -DADD_LEGACY_ACQUIRE_BUFFER_SYMBOL
 COMMON_GLOBAL_CFLAGS += -DNO_SECURE_DISCARD
 TARGET_RECOVERY_DEVICE_DIRS += device/samsung/lt02wifiue
 TARGET_RECOVERY_FSTAB := device/samsung/lt02wifiue/rootdir/etc/fstab.pxa988
+TARGET_RECOVERY_INITRC := device/samsung/lt02wifiue/recovery/init.rc
 TARGET_RECOVERY_PIXEL_FORMAT := "RGB_565"
 TARGET_USERIMAGES_USE_EXT4 := true
 

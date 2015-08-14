@@ -93,7 +93,6 @@ PRODUCT_PACKAGES += \
     init.pxa988.rc \
     init.pxa988.tel.rc \
     init.pxa988.usb.rc \
-    init.recovery.pxa988.rc \
     init.wifi.rc \
     ueventd.pxa988.rc
 
