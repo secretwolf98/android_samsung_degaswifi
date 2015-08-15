@@ -103,6 +103,7 @@ PRODUCT_PACKAGES += \
 # Wifi
 PRODUCT_PACKAGES += \
     hostapd \
+    MarvellWirelessDaemon \
     wpa_supplicant \
     wpa_supplicant.conf
 
