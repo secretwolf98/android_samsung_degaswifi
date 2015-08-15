@@ -66,7 +66,7 @@ CHARGING_ENABLED_PATH := "/sys/class/power_supply/battery/batt_lp_charging"
 BOARD_HARDWARE_CLASS += hardware/samsung/cmhw
 
 # Display
-BOARD_EGL_WORKAROUND_BUG_10194508 := true
+BOARD_USE_BGRA_8888 := true
 NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
 USE_OPENGL_RENDERER := true
 BOARD_USES_MRVL_ION := true

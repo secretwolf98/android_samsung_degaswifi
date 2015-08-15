@@ -135,9 +135,17 @@ enum {
     /* this layer will be handled in the HWC, using a blit engine */
     HWC_BLIT = 6,
 
+   /* HWC_2D is not used by compositionType, only used to count HWC_2D layers
+     * that go to HWC and use GC 2D Blit, compositionType will be other values defined privately
+     * in HWC_2D.
+     */
+#ifdef MRVL_HARDWARE
+    HWC_2D = 7,
+
     /* HWC_2D_TARGET is for virtual GCU blit in HWC.
      */
-    HWC_2D_TARGET = 7,
+    HWC_2D_TARGET = 8,
+#endif
 };
 /*
  * hwc_layer_t::blending values
@@ -150,7 +158,12 @@ enum {
     HWC_BLENDING_PREMULT  = 0x0105,
 
     /* SRC_ALPHA / ONE_MINUS_SRC_ALPHA */
-    HWC_BLENDING_COVERAGE = 0x0405
+    HWC_BLENDING_COVERAGE = 0x0405,
+
+    /* Dim layer */
+#ifdef MRVL_HARDWARE
+    HWC_BLENDING_DIM      = 0x0805,
+#endif
 };
 
 /*
