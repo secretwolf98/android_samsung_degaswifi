@@ -87,6 +87,10 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/media/media_codecs.xml:system/etc/media_codecs.xml \
     $(LOCAL_PATH)/media/media_profiles.xml:system/etc/media_profiles.xml
 
+# OMX
+PRODUCT_PACKAGES += \
+    libion
+
 # Power
 PRODUCT_PACKAGES += \
     libxml2 \
