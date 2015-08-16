@@ -197,7 +197,6 @@ lib/PowerHint/operator_vpu.so
 lib/libphs_input.so
 lib/libphs_log.so
 lib/libpowerhintservice.so
-lib/libxml2.so
 
 # RIL
 bin/atcmdsrv
