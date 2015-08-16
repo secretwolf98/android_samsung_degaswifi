@@ -170,31 +170,8 @@ lib/librealmediaextractor.so
 lib/libstagefright_mrvl_extractor.so
 
 # Power
-bin/phservice
-etc/foreground_task.xml
-etc/powerhal.conf
 etc/powerpolicy.pxa988.xml
 etc/powerpolicy.xml
-lib/libsysfs_access.so
-lib/hw/power.mrvl.so
-lib/PowerHint/hint_app_launch.so
-lib/PowerHint/hint_boot.so
-lib/PowerHint/hint_browser.so
-lib/PowerHint/hint_camera.so
-lib/PowerHint/hint_foreground_task.so
-lib/PowerHint/hint_input.so
-lib/PowerHint/hint_media.so
-lib/PowerHint/hint_phone.so
-lib/PowerHint/hint_rotation.so
-lib/PowerHint/hint_screen.so
-lib/PowerHint/hint_ssg_booster.so
-lib/PowerHint/hint_thermal.so
-lib/PowerHint/operator_cpu.so
-lib/PowerHint/operator_ddr.so
-lib/PowerHint/operator_gpu.so
-lib/PowerHint/operator_shcmd.so
-lib/PowerHint/operator_vpu.so
-lib/libphs_input.so
 lib/libphs_log.so
 lib/libpowerhintservice.so
 

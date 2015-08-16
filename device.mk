@@ -89,7 +89,9 @@ PRODUCT_COPY_FILES += \
 
 # Power
 PRODUCT_PACKAGES += \
-    libxml2
+    libxml2 \
+    power.mrvl \
+    powerhal.conf
 
 # Ramdisk
 PRODUCT_PACKAGES += \
