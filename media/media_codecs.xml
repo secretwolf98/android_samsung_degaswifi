@@ -77,6 +77,7 @@ Only the three quirks included above are recognized at this point:
 
 <MediaCodecs>
     <Include href="media_codecs_google_audio.xml" />
+<!--
     <Decoders>
         <MediaCodec name="OMX.MARVELL.VIDEO.HW.CODA7542DECODER" >
             <Type name="video/mp4v-es" />
@@ -99,7 +100,6 @@ Only the three quirks included above are recognized at this point:
         <MediaCodec name="OMX.MARVELL.VIDEO.WMVDECODER" >
             <Type name="video/wmv3" />
         </MediaCodec>
-        <!-- Audio Software  -->
         <MediaCodec name="OMX.MARVELL.AUDIO.MP3DECODER" type="audio/mpeg" />
         <MediaCodec name="OMX.MARVELL.AUDIO.AMRNBDECODER" type="audio/3gpp" />
         <MediaCodec name="OMX.MARVELL.AUDIO.AMRWBDECODER" type="audio/amr-wb" />
@@ -120,7 +120,7 @@ Only the three quirks included above are recognized at this point:
         <MediaCodec name="OMX.MARVELL.AUDIO.AMRNBENCODER" type="audio/3gpp" />
         <MediaCodec name="OMX.MARVELL.AUDIO.AMRWBENCODER" type="audio/amr-wb" />
         <MediaCodec name="OMX.MARVELL.AUDIO.AACENCODER" type="audio/mp4a-latm" />
-    </Encoders>
+    </Encoders> -->
     <Include href="media_codecs_google_video.xml" />
     <Include href="media_codecs_ffmpeg.xml" />
 </MediaCodecs>
