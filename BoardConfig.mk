@@ -47,6 +47,9 @@ BOARD_MKBOOTIMG_ARGS         := --ramdisk_offset 0x01000000
 TARGET_KERNEL_SOURCE         := kernel/samsung/lt02
 TARGET_KERNEL_CONFIG         := cyanogenmod_lt02_defconfig
 
+# Audio
+BOARD_USES_LEGACY_LIST := true
+
 # Bluetooth
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/samsung/lt02wifiue/bluetooth
 BOARD_HAVE_BLUETOOTH := true
