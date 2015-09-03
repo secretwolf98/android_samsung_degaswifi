@@ -28,13 +28,13 @@ BOARD_FLASH_BLOCK_SIZE := 131072
 
 BOARD_HAS_NO_SELECT_BUTTON := true
 
-BOARD_CUSTOM_MKBOOTIMG := degas-mkbootimg
+BOARD_CUSTOM_MKBOOTIMG := device/samsung/degaswifi/degas-mkbootimg
 BOARD_CUSTOM_BOOTIMG_MK := device/samsung/degaswifi/custom_mkbootimg.mk
-BOARD_MKBOOTIMG_ARGS := --dt device/samsung/degaswifi/recovery.img-dt
+BOARD_MKBOOTIMG_ARGS := --dt device/samsung/degaswifi/dt.img
 #TARGET_PREBUILT_KERNEL := device/samsung/degaswifi/kernel
 TARGET_KERNEL_SOURCE := kernel/samsung/degaswifi
-TARGET_KERNEL_CONFIG := pxa1088_degaswifi_eur_defconfig
-TARGET_KERNEL_VARIANT_CONFIG := pxa1088_degaswifi_eur_tgalal
+#TARGET_KERNEL_CONFIG := pxa1088_degaswifi_eur_defconfig
+#TARGET_KERNEL_VARIANT_CONFIG := pxa1088_degaswifi_eur_tgalal
 
 #twrp
 DEVICE_RESOLUTION := 800x1280
