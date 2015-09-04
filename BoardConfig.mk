@@ -89,7 +89,7 @@ BOARD_FLASH_BLOCK_SIZE := 131072
 BOARD_UMS_LUNFILE := "/sys/class/android_usb/f_mass_storage/lun0/file"
 
 # Recovery
-TARGET_RECOVERY_FSTAB := device/samsung/degaswifi/rootdir/fstab.pxa1088
+TARGET_RECOVERY_FSTAB := device/samsung/degaswifi/recovery.fstab
 TARGET_PLATFORM_DEVICE_BASE := /devices/soc.2/
 
 # Vold
