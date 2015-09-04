@@ -12,7 +12,6 @@ endif
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/kernel:kernel \
     $(LOCAL_PATH)/dt.img:dt.img \
-    $(LOCAL_PATH)/fstab.pxa1088:root/fstab.pxa1088 \
     $(LOCAL_PATH)/recovery/sbin/healthd:root/sbin/healthd
 
 $(call inherit-product, build/target/product/full.mk)
