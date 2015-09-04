@@ -25,13 +25,13 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-/efs                    emmc    /dev/block/platform/soc.2/by-name/EFS        flags=backup=1;display="EFS"
-/boot                   emmc    /dev/block/platform/soc.2/by-name/KERNEL
-/recovery               emmc    /dev/block/platform/soc.2/by-name/RECOVERY
-/cache                  ext4    /dev/block/platform/soc.2/by-name/CACHE
-/system                 ext4    /dev/block/platform/soc.2/by-name/SYSTEM
-/data                   ext4    /dev/block/platform/soc.2/by-name/USER       length=-16384
-/preload                ext4    /dev/block/platform/soc.2/by-name/HIDDEN
-/nvm                    ext4    /dev/block/platform/soc.2/by-name/NVM
-/radio                  emmc    /dev/block/platform/soc.2/by-name/MODEM 
+/efs                    emmc    /dev/block/mmcblk0p4        flags=backup=1;display="EFS"
+/boot                   emmc    /dev/block/mmcblk0p10
+/recovery               emmc    /dev/block/mmcblk0p9
+/cache                  ext4    /dev/block/mmcblk0p14		flags=fsflags="nosuid,nodev,noatime,noauto_da_alloc,discard,journal_async_com,errors=panic"
+/system                 ext4    /dev/block/mmcblk0p15		flags=fsflags="nosuid,nodev,noatime,noauto_da_alloc,discard,journal_async_com,errors=panic"
+/data                   ext4    /dev/block/mmcblk0p16		flags=fsflags="nosuid,nodev,noatime,noauto_da_alloc,discard,journal_async_com,errors=panic"
+/preload                ext4    /dev/block/mmcblk0p13		flags=fsflags="nosuid,nodev,noatime,noauto_da_alloc,discard,journal_async_com,errors=panic"
+/nvm                    ext4    /dev/block/mmcblk0p12		flags=fsflags="nosuid,nodev,noatime,noauto_da_alloc,discard,journal_async_com,errors=panic"
+/radio                  emmc    /dev/block/mmcblk0p11 
 /external_sd            vfat    /dev/block/mmcblk1p1 /dev/block/mmcblk1      flags=removable;storage;display="Micro SD"
