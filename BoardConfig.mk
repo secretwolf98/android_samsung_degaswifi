@@ -33,7 +33,7 @@ BOARD_CUSTOM_BOOTIMG_MK := device/samsung/degaswifi/custom_mkbootimg.mk
 BOARD_MKBOOTIMG_ARGS := --dt device/samsung/degaswifi/dt.img
 #TARGET_PREBUILT_KERNEL := device/samsung/degaswifi/kernel
 TARGET_KERNEL_SOURCE := kernel/samsung/degaswifi
-#TARGET_KERNEL_CONFIG := pxa1088_degaswifi_eur_defconfig
+TARGET_KERNEL_CONFIG := pxa1088_degaswifi_eur_defconfig
 #TARGET_KERNEL_VARIANT_CONFIG := pxa1088_degaswifi_eur_tgalal
 
 #twrp
@@ -42,6 +42,8 @@ RECOVERY_SDCARD_ON_DATA := true
 RECOVERY_GRAPHICS_USE_LINELENGTH := true
 BOARD_HAS_NO_REAL_SDCARD := true
 TW_NO_USB_STORAGE := true
+TW_FLASH_FROM_STORAGE := true
+
 #TARGET_RECOVERY_PIXEL_FORMAT := "BGRA_8888"
 #TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
 #TARGET_RECOVERY_PIXEL_FORMAT := "RGB_565"
