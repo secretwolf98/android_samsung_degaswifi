@@ -98,3 +98,6 @@ WIFI_SDIO_IF_DRIVER_MODULE_PATH := "/system/lib/modules/mlan.ko"
 WIFI_SDIO_IF_DRIVER_MODULE_NAME := "mlan"
 WIFI_SDIO_IF_DRIVER_MODULE_ARG := ""
 MRVL_WIRELESS_DAEMON_API := true
+
+# Classpath
+PRODUCT_BOOT_JARS := $(subst $(space),:,$(PRODUCT_BOOT_JARS))
