@@ -58,7 +58,8 @@ BOARD_USES_MRVL_HARDWARE := true
 BOARD_HAVE_PIXEL_FORMAT_INFO := true
 NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
 USE_OPENGL_RENDERER := true
-BOARD_EGL_CFG := device/samsung/degaswifi/configs/egl.cfg
+#BOARD_EGL_CFG := device/samsung/degaswifi/configs/egl.cfg
+ENABLE_HWC_GC_PATH := true
 
 # Kernel
 TARGET_KERNEL_SOURCE := kernel/samsung/degaswifi

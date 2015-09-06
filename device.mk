@@ -65,7 +65,8 @@ PRODUCT_PACKAGES += \
 
 # Graphics
 PRODUCT_PACKAGES += \
-    libHWComposerGC 
+    libHWComposerGC \
+    gralloc.mrvl
 
 # Ramdisk
 PRODUCT_COPY_FILES += \
