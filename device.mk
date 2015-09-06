@@ -86,4 +86,9 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     com.android.future.usb.accessory
 
+# ADB BOOT
+ADDITIONAL_DEFAULT_PROPERTIES += \
+   ro.adb.secure=0 \
+   ro.secure=0
+
 $(call inherit-product, frameworks/native/build/tablet-7in-hdpi-1024-dalvik-heap.mk)
