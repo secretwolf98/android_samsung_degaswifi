@@ -34,7 +34,7 @@ TARGET_NO_BOOTLOADER := true
 TARGET_NO_RADIOIMAGE := true
 
 # Assert
-TARGET_OTA_ASSERT_DEVICE := degas
+TARGET_OTA_ASSERT_DEVICE := degaswifi degaswifiue degas degasue
 
 # Audio
 BOARD_USES_ALSA_AUDIO := true
