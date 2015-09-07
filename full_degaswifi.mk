@@ -20,7 +20,7 @@ PRODUCT_NAME := full_degaswifi
 PRODUCT_DEVICE := degaswifi
 PRODUCT_BRAND := samsung
 PRODUCT_MANUFACTURER := samsung
-PRODUCT_MODEL := SM-T230NU
+PRODUCT_MODEL := SM-T230
 
 # Inherit makefile
 $(call inherit-product, device/samsung/degaswifi/device.mk)
