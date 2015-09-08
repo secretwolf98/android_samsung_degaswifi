@@ -29,7 +29,7 @@ TARGET_BOOTLOADER_BOARD_NAME := PXA1088
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
 TARGET_CPU_SMP := true
-TARGET_CPU_VARIANT := cortex-a7
+TARGET_CPU_VARIANT := cortex-a9
 TARGET_NO_BOOTLOADER := true
 TARGET_NO_RADIOIMAGE := true
 
@@ -58,8 +58,8 @@ BOARD_USES_MRVL_HARDWARE := true
 BOARD_HAVE_PIXEL_FORMAT_INFO := true
 NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
 USE_OPENGL_RENDERER := true
-#BOARD_EGL_CFG := device/samsung/degaswifi/configs/egl.cfg
-ENABLE_HWC_GC_PATH := true
+BOARD_EGL_CFG := device/samsung/degaswifi/configs/egl.cfg
+# ENABLE_HWC_GC_PATH := true
 
 # Kernel
 TARGET_KERNEL_SOURCE := kernel/samsung/degaswifi
@@ -100,4 +100,4 @@ WIFI_SDIO_IF_DRIVER_MODULE_ARG := ""
 MRVL_WIRELESS_DAEMON_API := true
 
 # Classpath
-PRODUCT_BOOT_JARS := $(subst $(space),:,$(PRODUCT_BOOT_JARS))
+# PRODUCT_BOOT_JARS := $(subst $(space),:,$(PRODUCT_BOOT_JARS))

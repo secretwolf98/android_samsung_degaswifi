@@ -55,8 +55,8 @@ PRODUCT_PACKAGES += \
     libnetcmdiface
 
 # IR
-PRODUCT_PACKAGES += \
-    consumerir.mrvl
+# PRODUCT_PACKAGES += \
+#    consumerir.mrvl
 
 # Wireless
 PRODUCT_PACKAGES += \
