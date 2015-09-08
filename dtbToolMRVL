@@ -1,0 +1,2 @@
+device/samsung/degaswifi/dtbToolCM -d pxa,rev-id -o out/target/product/degaswifi/dt.img -s 2048 -p out/target/product/degaswifi/obj/KERNEL_OBJ/scripts/dtc/ out/target/product/degaswifi/obj/KERNEL_OBJ/arch/arm/boot/dts/
+
