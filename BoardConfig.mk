@@ -63,7 +63,7 @@ ENABLE_HWC_GC_PATH := true
 
 # Kernel
 TARGET_KERNEL_SOURCE := kernel/samsung/degaswifi
-TARGET_KERNEL_CONFIG := pxa1088_degaswifi_usa_defconfig
+TARGET_KERNEL_CONFIG := pxa1088_degaswifi_eur_defconfig
 BOARD_KERNEL_BASE := 0x10000000
 BOARD_CUSTOM_BOOTIMG_MK := device/samsung/degaswifi/degaswifi_mkbootimg.mk
 BOARD_MKBOOTIMG_ARGS := --dt device/samsung/degaswifi/rootdir/boot.img-dt --ramdisk_offset 0x01000000
