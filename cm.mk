@@ -15,5 +15,5 @@ $(call inherit-product, device/samsung/degaswifi/full_degaswifi.mk)
 PRODUCT_DEVICE := degaswifi
 PRODUCT_NAME := cm_degaswifi
 PRODUCT_BRAND := Samsung
-PRODUCT_MODEL := SM-T230NU
+PRODUCT_MODEL := SM-T230
 PRODUCT_MANUFACTURER := samsung

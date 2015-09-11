@@ -1,6 +1,0 @@
-#!/bin/bash
-cd /home/patrick/android/CM/cm12.1/kernel/samsung/degaswifi
-rm -frv build
-make clean && make mrproper
-echo -en "\e[H\e[J\e[3J"
-echo Ready !

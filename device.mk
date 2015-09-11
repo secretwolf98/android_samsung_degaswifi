@@ -45,11 +45,6 @@ PRODUCT_AAPT_CONFIG := large mdpi hdpi xhdpi
 PRODUCT_AAPT_PREF_CONFIG := mdpi
 PRODUCT_LOCALES += mdpi
 
-# Charger
-PRODUCT_PACKAGES += \
-    charger \
-    charger_res_images
-
 # Net
 PRODUCT_PACKAGES += \
     libnetcmdiface
@@ -59,14 +54,25 @@ PRODUCT_PACKAGES += \
     consumerir.mrvl
 
 # Wireless
-PRODUCT_PACKAGES += \
-    libMarvellWireless \
-    MarvellWirelessDaemon
-
+#PRODUCT_PACKAGES += \
+#    libMarvellWireless \
+#    MarvellWirelessDaemon
+	
 # Graphics
+#PRODUCT_PACKAGES += \
+#    libHWComposerGC 
+
+# Media config
+PRODUCT_PACKAGES += media_codecs.xml
+
+# Filesystem management tools
 PRODUCT_PACKAGES += \
-    libHWComposerGC \
-    gralloc.mrvl
+    make_ext4fs \
+    e2fsck \
+    setup_fs
+
+# Charger
+PRODUCT_PACKAGES += charger charger_res_images
 
 # Ramdisk
 PRODUCT_COPY_FILES += \
@@ -86,9 +92,15 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     com.android.future.usb.accessory
 
+# SELinux
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.build.selinux=0 
+
 # ADB BOOT
 ADDITIONAL_DEFAULT_PROPERTIES += \
    ro.adb.secure=0 \
    ro.secure=0
+
+PRODUCT_BUILD_PROP_OVERRIDES += BUILD_UTC_DATE=0
 
 $(call inherit-product, frameworks/native/build/tablet-7in-hdpi-1024-dalvik-heap.mk)

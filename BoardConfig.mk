@@ -1,25 +1,7 @@
-# Copyright (C) 2013 The CyanogenMod Project
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+# Assert
+# TARGET_OTA_ASSERT_DEVICE := degaswifi
 
-TARGET_SPECIFIC_HEADER_PATH := device/samsung/degaswifi/include
-
-# Target info
-USE_CAMERA_STUB := true
-
-# MRVL hardware
-BOARD_USES_MRVL_HARDWARE := true
+BOARD_VENDOR := samsung
 
 # Architecture
 TARGET_ARCH := arm
@@ -29,12 +11,38 @@ TARGET_BOOTLOADER_BOARD_NAME := PXA1088
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
 TARGET_CPU_SMP := true
-TARGET_CPU_VARIANT := cortex-a7
+TARGET_CPU_VARIANT := cortex-a9
 TARGET_NO_BOOTLOADER := true
 TARGET_NO_RADIOIMAGE := true
 
-# Assert
-TARGET_OTA_ASSERT_DEVICE := degaswifi
+# Flags
+COMMON_GLOBAL_CFLAGS += -DMRVL_HARDWARE
+COMMON_GLOBAL_CFLAGS += -DNEEDS_VECTORIMPL_SYMBOLS
+COMMON_GLOBAL_CFLAGS += -DNO_SECURE_DISCARD
+
+BOARD_HARDWARE_CLASS += hardware/samsung/cmhw
+
+# Bootanimation
+TARGET_BOOTANIMATION_PRELOAD := true
+TARGET_BOOTANIMATION_TEXTURE_CACHE := true
+
+# Graphics
+USE_OPENGL_RENDERER := true
+BOARD_USE_BGRA_8888 := true
+NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
+
+# Charging mode
+BOARD_CHARGING_MODE_BOOTING_LPM := /sys/class/power_supply/battery/batt_lp_charging
+BOARD_BATTERY_DEVICE_NAME := "battery"
+
+# Override healthd HAL
+BOARD_HAL_STATIC_LIBRARIES := libhealthd.mrvl
+
+# Target info
+USE_CAMERA_STUB := true
+
+# MRVL hardware
+BOARD_USES_MRVL_HARDWARE := true
 
 # Audio
 BOARD_USES_ALSA_AUDIO := true
@@ -43,22 +51,13 @@ BOARD_USES_ALSA_AUDIO := true
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/samsung/degaswifi/bluetooth
 BOARD_HAVE_BLUETOOTH := true
 BOARD_HAVE_BLUETOOTH_MRVL := true
-MRVL_WIRELESS_DAEMON_API := true
-
-# Charging mode
-BOARD_CHARGING_MODE_BOOTING_LPM := true
-
-# Flags
-COMMON_GLOBAL_CFLAGS += -DMRVL_HARDWARE
-COMMON_GLOBAL_CFLAGS += -DNEEDS_VECTORIMPL_SYMBOLS
-COMMON_GLOBAL_CFLAGS += -DNO_SECURE_DISCARD
 
 # Graphics
 BOARD_USES_MRVL_HARDWARE := true
 BOARD_HAVE_PIXEL_FORMAT_INFO := true
 NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
 USE_OPENGL_RENDERER := true
-#BOARD_EGL_CFG := device/samsung/degaswifi/configs/egl.cfg
+BOARD_EGL_CFG := device/samsung/degaswifi/configs/egl.cfg
 ENABLE_HWC_GC_PATH := true
 
 # Kernel
@@ -67,8 +66,9 @@ TARGET_KERNEL_CONFIG := pxa1088_degaswifi_eur_defconfig
 BOARD_KERNEL_BASE := 0x10000000
 BOARD_CUSTOM_BOOTIMG_MK := device/samsung/degaswifi/degaswifi_mkbootimg.mk
 BOARD_MKBOOTIMG_ARGS := --dt device/samsung/degaswifi/rootdir/boot.img-dt --ramdisk_offset 0x01000000
-BOARD_KERNEL_CMDLINE := androidboot.selinux=disabled
+BOARD_KERNEL_CMDLINE := initrd=0x01100000,1m rw androidboot.console=ttyS1 console=ttyS1,115200 panic_debug
 BOARD_KERNEL_PAGESIZE := 2048
+TARGET_SPECIFIC_HEADER_PATH := device/samsung/degaswifi/include
     
 # Partitions
 TARGET_USERIMAGES_USE_EXT4 := true
@@ -76,18 +76,18 @@ BOARD_BOOTIMAGE_PARTITION_SIZE := 12582912
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 12582912
 BOARD_SYSTEMIMAGE_PARTITION_SIZE := 2224029696
 BOARD_USERDATAIMAGE_PARTITION_SIZE := 5230297088
-BOARD_FLASH_BLOCK_SIZE := 131072
-BOARD_UMS_LUNFILE := "/sys/class/android_usb/f_mass_storage/lun0/file"
+BOARD_FLASH_BLOCK_SIZE := 4096
+BLOCK_BASED_OTA := false
 
 # Recovery
 TARGET_RECOVERY_FSTAB := device/samsung/degaswifi/rootdir/fstab.pxa1088
-
-#OTA Package
-BLOCK_BASED_OTA := false
+BOARD_SUPPRESS_EMMC_WIPE := true
+TARGET_RECOVERY_PIXEL_FORMAT := "RGB_565"
 
 # Vold
 BOARD_VOLD_EMMC_SHARES_DEV_MAJOR := true
 TARGET_USE_CUSTOM_LUN_FILE_PATH := "/sys/class/android_usb/f_mass_storage/lun%d/file"
+BOARD_UMS_LUNFILE := "/sys/class/android_usb/f_mass_storage/lun0/file"
 
 # WiFi
 BOARD_WLAN_VENDOR := MRVL
@@ -102,3 +102,6 @@ WIFI_SDIO_IF_DRIVER_MODULE_PATH := "/system/lib/modules/mlan.ko"
 WIFI_SDIO_IF_DRIVER_MODULE_NAME := "mlan"
 WIFI_SDIO_IF_DRIVER_MODULE_ARG := ""
 MRVL_WIRELESS_DAEMON_API := true
+
+# Releasetools
+TARGET_RELEASETOOLS_EXTENSIONS := device/samsung/degaswifi
