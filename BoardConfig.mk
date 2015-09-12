@@ -87,7 +87,7 @@ TARGET_RECOVERY_PIXEL_FORMAT := "RGB_565"
 BOARD_SUPPRESS_SECURE_ERASE := true
 
 #TWRP
-RECOVERY_VARIANT := twrp
+#RECOVERY_VARIANT := twrp
 TW_THEME := portrait_hdpi
 TW_DEFAULT_EXTERNAL_STORAGE := true
 #TW_BRIGHTNESS_PATH := /sys/class/leds/lcd-backlight/brightness

@@ -93,13 +93,17 @@ PRODUCT_PACKAGES += \
     com.android.future.usb.accessory
 
 # SELinux
-PRODUCT_PROPERTY_OVERRIDES += \
-    ro.build.selinux=0 
+#PRODUCT_PROPERTY_OVERRIDES += \
+#    ro.build.selinux=1 
 
 # ADB BOOT
 ADDITIONAL_DEFAULT_PROPERTIES += \
    ro.adb.secure=0 \
    ro.secure=0
+
+PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
+    persist.sys.usb.config=mtp
+
 
 PRODUCT_BUILD_PROP_OVERRIDES += BUILD_UTC_DATE=0
 
