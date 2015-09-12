@@ -43,7 +43,7 @@ TARGET_NO_BOOTLOADER := true
 TARGET_NO_RADIOIMAGE := true
 
 # Assert
-TARGET_OTA_ASSERT_DEVICE := degaswifi,degas,SM-T230,SM-T230NU
+# TARGET_OTA_ASSERT_DEVICE := degaswifi,degas,SM-T230,SM-T230NU
 
 # Audio
 BOARD_USES_ALSA_AUDIO := true
@@ -58,7 +58,10 @@ MRVL_WIRELESS_DAEMON_API := true
 BOARD_CHARGING_MODE_BOOTING_LPM := true
 
 # Prebuilt webview
-PRODUCT_PREBUILT_WEBVIEWCHROMIUM := yes
+PRODUCT_PREBUILT_WEBVIEWCHROMIUM := no
+
+# Classpath
+PRODUCT_BOOT_JARS := $(subst $(space),:,$(PRODUCT_BOOT_JARS))
 
 # CM Hardware
 BOARD_HARDWARE_CLASS := device/samsung/degaswifi/cmhw
