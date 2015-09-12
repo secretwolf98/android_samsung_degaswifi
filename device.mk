@@ -51,9 +51,21 @@ PRODUCT_PACKAGES += \
     charger \
     charger_res_images
 
-# Net
+# OMX
 PRODUCT_PACKAGES += \
-    libnetcmdiface
+    libc2dcolorconvert \
+    libdashplayer \
+    libdivxdrmdecrypt \
+    libmm-omxcore\
+    libOmxAacEnc \
+    libOmxAmrEnc \
+    libOmxCore \
+    libOmxEvrcEnc \
+    libOmxQcelp13Enc \
+    libOmxVdec \
+    libOmxVdecHevc \
+    libOmxVenc \
+    libstagefrighthw
 
 # IR
 #PRODUCT_PACKAGES += \
