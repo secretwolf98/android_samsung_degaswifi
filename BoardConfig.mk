@@ -61,7 +61,7 @@ BOARD_CHARGING_MODE_BOOTING_LPM := true
 PRODUCT_PREBUILT_WEBVIEWCHROMIUM := true
 
 # Classpath
-PRODUCT_BOOT_JARS := $(subst $(space),:,$(PRODUCT_BOOT_JARS))
+#PRODUCT_BOOT_JARS := $(subst $(space),:,$(PRODUCT_BOOT_JARS))
 
 # CM Hardware
 BOARD_HARDWARE_CLASS := device/samsung/degaswifi/cmhw
