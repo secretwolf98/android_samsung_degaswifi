@@ -10,7 +10,7 @@ ro.carrier=wifi-only
 
 # System property for Default Brightness
 ro.lcd_brightness=195
-ro.sf.lcd_density=160
+ro.sf.lcd_density=213
 
 # minimum brightness value
 ro.lcd_min_brightness=20
