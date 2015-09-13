@@ -7,6 +7,7 @@ ro.sf.hwrotation=270
 ro.config.used_hw_vsync=0
 
 ro.carrier=wifi-only
+ro.radio.noril=1 
 
 # System property for Default Brightness
 ro.lcd_brightness=195
