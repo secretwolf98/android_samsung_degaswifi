@@ -54,6 +54,9 @@ BOARD_MKBOOTIMG_ARGS 	:= --ramdisk_offset 0x01000000
 BOARD_CUSTOM_BOOTIMG 	:= device/samsung/degaswifi/degas-mkbootimg
 BOARD_CUSTOM_BOOTIMG_MK := device/samsung/degaswifi/degas-mkbootimg.mk
 
+# Classpath
+PRODUCT_BOOT_JARS := $(subst $(space),:,$(PRODUCT_BOOT_JARS))
+
 # TARGET_PREBUILT_KERNEL := 
 
 # Kernel Modules
