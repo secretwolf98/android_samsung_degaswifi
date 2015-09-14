@@ -27,18 +27,6 @@ PRODUCT_TAGS += dalvik.gc.type-precise
 PRODUCT_PACKAGES += \
 	libion \
 	libHWComposerGC
-	
-KERNEL_EXTERNAL_MODULES:
-	cd vendor/marvell/generic/sd8887/wlan_src; \
-	make ARCH="arm" CROSS_COMPILE="arm-eabi-" KERNELDIR=$(KERNEL_OUT)
-	mv vendor/marvell/generic/sd8887/wlan_src/mlan.ko $(KERNEL_MODULES_OUT)
-	mv vendor/marvell/generic/sd8887/wlan_src/sd8xxx.ko $(KERNEL_MODULES_OUT)/sd8887.ko
-	cd vendor/marvell/generic/sd8887/mbtc_src; \
-	make ARCH="arm" CROSS_COMPILE="arm-eabi-" KERNELDIR=$(KERNEL_OUT)
-	mv vendor/marvell/generic/sd8887/mbtc_src/mbt8xxx.ko $(KERNEL_MODULES_OUT)
-
-TARGET_KERNEL_MODULES := KERNEL_EXTERNAL_MODULES
-
 
 # Permissions
 PRODUCT_COPY_FILES += \
