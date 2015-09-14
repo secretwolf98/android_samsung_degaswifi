@@ -76,7 +76,7 @@
             16 - App switch
          For example, a device with Home, Back and Menu keys would set this
          config to 7. -->
-    <integer name="config_deviceHardwareKeys">7</integer>
+    <integer name="config_deviceHardwareKeys">19</integer>
 
     <!-- Device supports LED flashlight -->
     <add-resource type="bool" name="config_enableTorch"></add-resource>
@@ -90,7 +90,7 @@ rotations as the default behavior. -->
 
     <!-- Flag indicating whether the we should enable the automatic brightness in Settings.
 Software implementation will be used if config_hardware_auto_brightness_available is not set -->
-    <bool name="config_automatic_brightness_available">true</bool>
+    <bool name="config_automatic_brightness_available">false</bool>
 
     <!-- Array of light sensor LUX values to define our levels for auto backlight brightness support.
 The N entries of this array define N + 1 zones as follows:
