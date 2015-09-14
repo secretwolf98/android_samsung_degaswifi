@@ -106,6 +106,7 @@ TARGET_USE_CUSTOM_LUN_FILE_PATH := "/sys/class/android_usb/f_mass_storage/lun0/f
 
 # Graphics
 USE_OPENGL_RENDERER := true
+BOARD_EGL_CFG := device/samsung/degaswifi/configs/egl.cfg
 #BOARD_EGL_NEEDS_LEGACY_FB := true
 #COMMON_GLOBAL_CFLAGS += -DWORKAROUND_BUG_10194508
 #TARGET_RUNNING_WITHOUT_SYNC_FRAMEWORK := true
