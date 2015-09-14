@@ -143,6 +143,12 @@ BOARD_ENABLE_MULTI_DISPLAYS := true
 
 #Generic config
 MRVL_ION := true
+#BOARD_HAVE_OLD_ION_API := true
+
+# The above lines are almost the same as Brownstone.
+# MMP3 Special
+BOARD_USE_VIVANTE_GRALLOC := true
+HDMI_SUPPORT_3D := true
 
 #BOARD_GFX_DRIVER_VERSION=4x
 
