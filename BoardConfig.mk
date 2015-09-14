@@ -136,6 +136,7 @@ BOARD_USE_SKIA_LCDTEXT := true
 BOARD_NEEDS_CUTILS_LOG := true
 BOARD_HAVE_PIXEL_FORMAT_INFO := true
 BOARD_USES_HWCOMPOSER := true
+ENABLE_HWC_GC_PATH := true
 
 TARGET_HARDWARE_3D := false
 
@@ -143,7 +144,8 @@ BOARD_ENABLE_MULTI_DISPLAYS := true
 
 #Generic config
 MRVL_ION := true
-#BOARD_HAVE_OLD_ION_API := true
+USE_ION := true
+BOARD_HAVE_OLD_ION_API := true
 
 # The above lines are almost the same as Brownstone.
 # MMP3 Special
