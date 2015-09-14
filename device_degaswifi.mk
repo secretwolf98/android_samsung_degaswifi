@@ -100,10 +100,18 @@ PRODUCT_PACKAGES += \
     init.pxa1088.rc \
     init.pxa1088.usb.rc \
     ueventd.pxa1088.rc
-    
+
 # uevent.rc
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/ueventd.pxa1088.rc:root/ueventd.pxa1088.rc
+
+# adb.pub
+PRODUCT_PACKAGES += \
+	adbkey.pub	
+
+# adb.pub
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/rootdir/adbkey.pub:root/adbkey.pub
 
 # Audio
 PRODUCT_COPY_FILES += \
