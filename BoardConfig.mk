@@ -85,18 +85,18 @@ BOARD_HAVE_BLUETOOTH_MRVL := true
 MRVL_WIRELESS_DAEMON_API := true
 
 # WiFi
-BOARD_WLAN_VENDOR := MRVL
-WIFI_DRIVER_MODULE_PATH := "/system/lib/modules/sd8xxx.ko"
-WIFI_DRIVER_MODULE_NAME	:= "sd8xxx"
-WIFI_DRIVER_MODULE_ARG := "firmware_path=/system/etc/firmware/mrvl/sd8777_uapsta.bin cfg80211_wext=12 sta_name=wlan uap_name=wlan wfd_name=p2p fw_name=mrvl/sd8777_uapsta.bin"
-WIFI_DRIVER_FW_PATH_PARAM := "/sys/module/sd8xxx/parameters/firmware_path"
-WIFI_DRIVER_FW_PATH_STA := "/system/etc/firmware/mrvl/sd8777_uapsta.bin"
-WIFI_DRIVER_FW_PATH_AP := "/system/etc/firmware/mrvl/sd8777_uapsta.bin"
-WIFI_DRIVER_FW_PATH_P2P := "/system/etc/firmware/mrvl/sd8777_uapsta.bin"
+BOARD_WLAN_VENDOR 				:= MRVL
+WIFI_DRIVER_MODULE_PATH 		:= "/system/lib/modules/sd8xxx.ko"
+WIFI_DRIVER_MODULE_NAME			:= "sd8xxx"
+WIFI_DRIVER_MODULE_ARG 			:= "firmware_path=/system/etc/firmware/mrvl/sd8887_uapsta.bin cfg80211_wext=12 sta_name=wlan uap_name=wlan wfd_name=p2p fw_name=mrvl/sd8887_uapsta.bin"
+WIFI_DRIVER_FW_PATH_PARAM 		:= "/sys/module/sd8xxx/parameters/firmware_path"
+WIFI_DRIVER_FW_PATH_STA 		:= "/system/etc/firmware/mrvl/sd8887_uapsta.bin"
+WIFI_DRIVER_FW_PATH_AP 			:= "/system/etc/firmware/mrvl/sd8887_uapsta.bin"
+WIFI_DRIVER_FW_PATH_P2P 		:= "/system/etc/firmware/mrvl/sd8887_uapsta.bin"
 WIFI_SDIO_IF_DRIVER_MODULE_PATH := "/system/lib/modules/mlan.ko"
 WIFI_SDIO_IF_DRIVER_MODULE_NAME := "mlan"
-WIFI_SDIO_IF_DRIVER_MODULE_ARG := ""
-MRVL_WIRELESS_DAEMON_API := true
+WIFI_SDIO_IF_DRIVER_MODULE_ARG 	:= ""
+MRVL_WIRELESS_DAEMON_API 		:= true
 
 # Vold
 BOARD_VOLD_MAX_PARTITIONS := 17
