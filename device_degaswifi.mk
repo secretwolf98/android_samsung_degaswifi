@@ -42,6 +42,9 @@ DEFAULT_PROPERTY_OVERRIDES += \
     persist.sys.usb.config=mtp,adb \
     sys.disable_ext_animation=1
 
+PRODUCT_PACKAGES += \
+	libxml2
+
 # Charger
 PRODUCT_PACKAGES += \
     charger \
