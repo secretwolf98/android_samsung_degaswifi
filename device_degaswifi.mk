@@ -23,6 +23,12 @@ PRODUCT_LOCALES += mdpi
 # we have enough storage space to hold precise GC data
 PRODUCT_TAGS += dalvik.gc.type-precise
 
+# Charger
+PRODUCT_PACKAGES += \
+	libion \
+	libHWComposerGC
+	
+
 # Permissions
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.audio.low_latency.xml:system/etc/permissions/android.hardware.audio.low_latency.xml \
