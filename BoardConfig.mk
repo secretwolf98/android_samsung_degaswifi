@@ -55,19 +55,7 @@ BOARD_CUSTOM_BOOTIMG_MK := device/samsung/degaswifi/degas-mkbootimg.mk
 
 # Classpath
 PRODUCT_BOOT_JARS := $(subst $(space),:,$(PRODUCT_BOOT_JARS))
-
-# TARGET_PREBUILT_KERNEL := 
-
-# Kernel Modules
-#SAMSUNG_MODULES:
-#	make -C kernel/samsung/degaswifi_modules/ clean_modules KERNELDIR=$(KERNEL_OUT) CROSS_COMPILE=$(ANDROID_TOOLCHAIN)/arm-linux-androideabi-
-#	make -C kernel/samsung/degaswifi_modules/ modules CFLAGS_MODULE=-fno-pic KERNELDIR=$(KERNEL_OUT) CROSS_COMPILE=$(ANDROID_TOOLCHAIN)/arm-linux-androideabi-
-#	mkdir -p out/target/product/degaswifi/recovery/root/lib/modules
-#	cp $(KERNEL_OUT)/drivers/exfat/*.ko out/target/product/degaswifi/recovery/root/lib/modules/
-#	find kernel/samsung/degaswifi_modules/ -type f -name *.ko -exec cp {} $(KERNEL_MODULES_OUT) \;
-#
-#TARGET_KERNEL_MODULES += SAMSUNG_MODULES
-    
+   
 # Partitions
 TARGET_USERIMAGES_USE_EXT4 := true
 BOARD_BOOTIMAGE_PARTITION_SIZE := 12582912
