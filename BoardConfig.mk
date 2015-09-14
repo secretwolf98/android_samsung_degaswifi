@@ -37,7 +37,6 @@ ARCH_ARM_HAVE_TLS_REGISTER := true
 
 # Flags
 COMMON_GLOBAL_CFLAGS += -DMRVL_HARDWARE
-COMMON_GLOBAL_CFLAGS += -DNO_RGBX_8888
 TARGET_GLOBAL_CFLAGS += -mtune=cortex-a9 -mfpu=neon -mfloat-abi=softfp
 TARGET_GLOBAL_CPPFLAGS += -mtune=cortex-a9 -mfpu=neon -mfloat-abi=softfp
 
@@ -119,13 +118,11 @@ TARGET_USE_CUSTOM_LUN_FILE_PATH := "/sys/class/android_usb/f_mass_storage/lun0/f
 
 # Graphics
 USE_OPENGL_RENDERER := true
-BOARD_EGL_CFG := device/samsung/degaswifi/configs/egl.cfg
 #BOARD_EGL_NEEDS_LEGACY_FB := true
 #COMMON_GLOBAL_CFLAGS += -DWORKAROUND_BUG_10194508
 #TARGET_RUNNING_WITHOUT_SYNC_FRAMEWORK := true
 VSYNC_EVENT_PHASE_OFFSET_NS := 0
 BOARD_HAVE_PIXEL_FORMAT_INFO := true
-BOARD_USE_BGRA_8888 := true
 BOARD_USE_MHEAP_SCREENSHOT := true
 
 # Audio
@@ -146,11 +143,6 @@ BOARD_ENABLE_MULTI_DISPLAYS := true
 
 #Generic config
 MRVL_ION := true
-
-# The above lines are almost the same as Brownstone.
-# MMP3 Special
-BOARD_USE_VIVANTE_GRALLOC := true
-HDMI_SUPPORT_3D := true
 
 #BOARD_GFX_DRIVER_VERSION=4x
 
@@ -210,7 +202,7 @@ BOARD_SEPOLICY_UNION += \
 
 #TWRP
 DEVICE_RESOLUTION := 800x1280
-
+TARGET_RECOVERY_PIXEL_FORMAT := "RGB_565"
 RECOVERY_SDCARD_ON_DATA := true
 TW_INTERNAL_STORAGE_PATH := "/data/media"
 TW_INTERNAL_STORAGE_MOUNT_POINT := "data"
