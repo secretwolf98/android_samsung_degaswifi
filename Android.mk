@@ -21,6 +21,6 @@
 
 LOCAL_PATH := $(call my-dir)
 
-ifneq ($(filter lt02wifiue,$(TARGET_DEVICE)),)
+ifneq ($(filter degaswifi,$(TARGET_DEVICE)),)
 include $(call all-subdir-makefiles,$(LOCAL_PATH))
 endif

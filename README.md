@@ -1,6 +1,6 @@
 Copyright 2014 - The CyanogenMod Project
 
-Device configuration for Samsung Galaxy Tab 3 7in (WIFI).
+Device configuration for Samsung Galaxy Tab 4 7in (WIFI).
 =====================================
 
 Basic   | Spec Sheet

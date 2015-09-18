@@ -31,27 +31,29 @@ TARGET_ARCH_VARIANT := armv7-a-neon
 TARGET_CPU_VARIANT := cortex-a9
 
 # Assert
-TARGET_OTA_ASSERT_DEVICE := lt02wifi,lt02wifiue,SM-T210R
+# TARGET_OTA_ASSERT_DEVICE := degaswifi,SM-T230
 
 # Bootloader
-TARGET_BOOTLOADER_BOARD_NAME := PXA986
+TARGET_BOOTLOADER_BOARD_NAME := PXA1088
 TARGET_NO_BOOTLOADER := true
 
 # Include path
-TARGET_SPECIFIC_HEADER_PATH := device/samsung/lt02wifiue/include
+TARGET_SPECIFIC_HEADER_PATH := device/samsung/degaswifi/include
 
 # Kernel
+BOARD_CUSTOM_BOOTIMG_MK 	 := device/samsung/degaswifi/degas-mkbootimg.mk
+BOARD_CUSTOM_MK_BOOTIMG		 := device/samsung/degaswifi/degas-mkbootimg
 BOARD_KERNEL_BASE            := 0x10000000
 BOARD_KERNEL_PAGESIZE        := 2048
-BOARD_MKBOOTIMG_ARGS         := --ramdisk_offset 0x01000000
-TARGET_KERNEL_SOURCE         := kernel/samsung/lt02
-TARGET_KERNEL_CONFIG         := cyanogenmod_lt02_defconfig
+BOARD_MKBOOTIMG_ARGS 	     := --dt device/samsung/degaswifi/rootdir/boot.img-dt --ramdisk_offset 0x01000000
+TARGET_KERNEL_SOURCE         := kernel/samsung/degas
+TARGET_KERNEL_CONFIG         := test_defconfig
 
 # Audio
 BOARD_USES_LEGACY_LIST := true
 
 # Bluetooth
-BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/samsung/lt02wifiue/bluetooth
+BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/samsung/degaswifi/bluetooth
 BOARD_HAVE_BLUETOOTH := true
 BOARD_HAVE_BLUETOOTH_MRVL := true
 MRVL_WIRELESS_DAEMON_API := true
@@ -93,9 +95,9 @@ COMMON_GLOBAL_CFLAGS += -DADD_LEGACY_ACQUIRE_BUFFER_SYMBOL
 
 # Recovery
 COMMON_GLOBAL_CFLAGS += -DNO_SECURE_DISCARD
-TARGET_RECOVERY_DEVICE_DIRS += device/samsung/lt02wifiue
-TARGET_RECOVERY_FSTAB := device/samsung/lt02wifiue/rootdir/etc/fstab.pxa988
-TARGET_RECOVERY_INITRC := device/samsung/lt02wifiue/recovery/init.rc
+TARGET_RECOVERY_DEVICE_DIRS += device/samsung/degaswifi
+TARGET_RECOVERY_FSTAB := device/samsung/degaswifi/rootdir/etc/fstab.pxa1088
+TARGET_RECOVERY_INITRC := device/samsung/degaswifi/recovery/init.rc
 TARGET_RECOVERY_PIXEL_FORMAT := "RGB_565"
 TARGET_USERIMAGES_USE_EXT4 := true
 
@@ -108,13 +110,33 @@ BOARD_WPA_SUPPLICANT_PRIVATE_LIB := lib_driver_cmd_mrvl
 BOARD_HOSTAPD_DRIVER             := NL80211
 BOARD_HOSTAPD_PRIVATE_LIB        := lib_driver_cmd_mrvl
 WIFI_DRIVER_FW_PATH_PARAM        := "/proc/mwlan/config"
-WIFI_DRIVER_FW_PATH_STA          := "/system/etc/firmware/mrvl/sd8787_uapsta.bin"
-WIFI_DRIVER_FW_PATH_AP           := "/system/etc/firmware/mrvl/sd8787_uapsta.bin"
+WIFI_DRIVER_FW_PATH_STA          := "/system/etc/firmware/mrvl/sd8887_uapsta.bin"
+WIFI_DRIVER_FW_PATH_AP           := "/system/etc/firmware/mrvl/sd8887_uapsta.bin"
 
 # TWRP
-TW_THEME := landscape_hdpi
+TW_THEME := portrait_hdpi
 BOARD_HAS_NO_REAL_SDCARD := true
 RECOVERY_SDCARD_ON_DATA := true
 TW_NO_USB_STORAGE := true
 TW_NO_REBOOT_BOOTLOADER := true
 TW_HAS_DOWNLOAD_MODE := true
+
+# Block_Build
+Bliss_Build_Block := 1
+
+# BlissPop Configs
+BLISS_WIPE_CACHES := 0
+BLISSIFY := true
+BLISS_O3 := true
+BLISS_GRAPHITE := false
+BLISS_STRICT := true
+BLISS_KRAIT := false
+BLISS_PIPE := false
+TARGET_TC_ROM := 4.8
+TARGET_TC_KERNEL := 4.8
+TARGET_GCC_VERSION_EXP := $(TARGET_TC_ROM)
+TARGET_KERNEL_CUSTOM_TOOLCHAIN := $(TARGET_TC_KERNEL)
+WITH_LZMA_OTA := false
+
+#SaberMod
+-include vendor/bliss/config/sm.mk

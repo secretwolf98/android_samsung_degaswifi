@@ -1,5 +1,5 @@
 #
-# system.prop for lt02wifiue
+# system.prop for degaswifi
 #
 
 camera2.portability.force_api=1
@@ -7,11 +7,9 @@ camera2.portability.force_api=1
 # set opengles version as 0x20000
 ro.opengles.version=131072
 
-# rotation setting in potrait mode.
-ro.sf.hwrotation=270
 
 # lcd density
-ro.sf.lcd_density=160
+ro.sf.lcd_density=213
 
 # wifi only
 ro.carrier=wifi-only

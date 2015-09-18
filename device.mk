@@ -15,7 +15,7 @@
 $(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
 
 # Also get non-open-source specific aspects if available
-$(call inherit-product-if-exists, vendor/samsung/lt02wifiue/lt02wifiue-vendor.mk)
+$(call inherit-product-if-exists, vendor/samsung/degaswifiue/degaswifi-vendor.mk)
 
 # Overlay
 DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
@@ -47,8 +47,8 @@ PRODUCT_AAPT_PREF_CONFIG := mdpi
 PRODUCT_LOCALES += mdpi
 
 # Boot animation
-TARGET_SCREEN_HEIGHT := 1024
-TARGET_SCREEN_WIDTH  := 600
+TARGET_SCREEN_HEIGHT := 1280
+TARGET_SCREEN_WIDTH  := 800
 
 $(call inherit-product, frameworks/native/build/tablet-7in-hdpi-1024-dalvik-heap.mk)
 
@@ -99,12 +99,12 @@ PRODUCT_PACKAGES += \
 
 # Ramdisk
 PRODUCT_PACKAGES += \
-    fstab.pxa988 \
-    init.pxa988.rc \
-    init.pxa988.tel.rc \
-    init.pxa988.usb.rc \
+    fstab.pxa1088 \
+    init.pxa1088.rc \
+    init.pxa1088.tel.rc \
+    init.pxa1088.usb.rc \
     init.wifi.rc \
-    ueventd.pxa988.rc
+    ueventd.pxa1088.rc
 
 # USB
 PRODUCT_PACKAGES += \

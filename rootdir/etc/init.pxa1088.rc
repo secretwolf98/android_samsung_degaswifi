@@ -1,5 +1,5 @@
-import init.pxa988.usb.rc
-import init.pxa988.tel.rc
+import init.pxa1088.usb.rc
+import init.pxa1088.tel.rc
 import init.wifi.rc
 
 on init
@@ -192,7 +192,7 @@ on init
 
 on fs
     # for e2fsck bad block of /data partition before mount
-    mount_all /fstab.pxa988
+    mount_all /fstab.pxa1088
 
     mount debugfs debugfs /sys/kernel/debug
     chown radio system /efs
