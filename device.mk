@@ -15,12 +15,12 @@
 $(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
 
 # Also get non-open-source specific aspects if available
-$(call inherit-product-if-exists, vendor/samsung/degaswifiue/degaswifi-vendor.mk)
+$(call inherit-product-if-exists, vendor/samsung/degaswifi/degaswifi-vendor.mk)
 
 PRODUCT_CHARACTERISTICS := tablet
 
 # Overlay
-DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
+DEVICE_PACKAGE_OVERLAYS += device/samsung/degaswifi/overlay
 
 # Permissions
 PRODUCT_COPY_FILES += \
@@ -42,15 +42,31 @@ PRODUCT_COPY_FILES += \
 # OMX
 PRODUCT_PACKAGES += \
 	lib_driver_cmd_mrvl \
-	libHWComposerGC \
     libion \
-	libGLES_android \
+	libGLES_android 
 
+# we have enough storage space to hold precise GC data
+PRODUCT_TAGS += dalvik.gc.type-precise
 
+# Set property overrides
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.zygote.disable_gl_preload=true \
+    ro.cm.hardware.cabc=/sys/class/mdnie/mdnie/cabc \
+    ro.bq.gpu_to_cpu_unsupported=1 \
+    wifi.interface=wlan0 \
+    wifi.softap.interface=wlan0 \
+    wifi.supplicant_scan_interval=30 \
+    dalvik.vm.heapsize=128m \
+    ro.carrier=wifi-only
+	
+DEFAULT_PROPERTY_OVERRIDES += \
+    ro.secure=0 \
+    ro.allow.mock.location=1 \
+    ro.debuggable=1 \
+    persist.service.adb.enable=1 \
+    persist.sys.usb.config=mtp,adb \
+    sys.disable_ext_animation=1
 
-
-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
-    persist.sys.usb.config=mtp
 
 # Screen density
 PRODUCT_AAPT_CONFIG := large
@@ -70,8 +86,8 @@ PRODUCT_PACKAGES += \
 
 # Audio configuration
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/audio/audio_policy.conf:system/etc/audio_policy.conf \
-    $(LOCAL_PATH)/audio/audio_effects.conf:system/etc/audio_effects.conf
+    device/samsung/degaswifi/audio/audio_policy.conf:system/etc/audio_policy.conf \
+    device/samsung/degaswifi/audio/audio_effects.conf:system/etc/audio_effects.conf
 
 # Charger
 PRODUCT_PACKAGES += \
@@ -86,17 +102,17 @@ PRODUCT_COPY_FILES += \
 
 # Keylayouts
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/keylayout/88pm80x_on.kl:system/usr/keylayout/88pm80x_on.kl \
-    $(LOCAL_PATH)/keylayout/88pm800_hook_vol.kl:system/usr/keylayout/88pm800_hook_vol.kl \
-    $(LOCAL_PATH)/keylayout/gpio-keys.kl:system/usr/keylayout/gpio-keys.kl \
-    $(LOCAL_PATH)/keylayout/sec_touchscreen.kl:system/usr/keylayout/sec_touchscreen.kl
+    device/samsung/degaswifi/keylayout/88pm80x_on.kl:system/usr/keylayout/88pm80x_on.kl \
+    device/samsung/degaswifi/keylayout/88pm800_hook_vol.kl:system/usr/keylayout/88pm800_hook_vol.kl \
+    device/samsung/degaswifi/keylayout/gpio-keys.kl:system/usr/keylayout/gpio-keys.kl \
+    device/samsung/degaswifi/keylayout/sec_touchscreen.kl:system/usr/keylayout/sec_touchscreen.kl
 
 # Media Config
 PRODUCT_COPY_FILES += \
     frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml:system/etc/media_codecs_google_audio.xml \
     frameworks/av/media/libstagefright/data/media_codecs_google_video.xml:system/etc/media_codecs_google_video.xml \
-    $(LOCAL_PATH)/media/media_codecs.xml:system/etc/media_codecs.xml \
-    $(LOCAL_PATH)/media/media_profiles.xml:system/etc/media_profiles.xml
+    device/samsung/degaswifi/media/media_codecs.xml:system/etc/media_codecs.xml \
+    device/samsung/degaswifi/media/media_profiles.xml:system/etc/media_profiles.xml
 
 # Power
 PRODUCT_PACKAGES += \
@@ -117,6 +133,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     com.android.future.usb.accessory
 
+# Disable SELinux
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.boot.selinux=disabled
+
 # Wifi
 PRODUCT_PACKAGES += \
     hostapd \
@@ -125,5 +145,5 @@ PRODUCT_PACKAGES += \
     wpa_supplicant.conf 
 
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/wifi/p2p_supplicant_overlay.conf:system/etc/wifi/p2p_supplicant_overlay.conf \
-    $(LOCAL_PATH)/wifi/wpa_supplicant_overlay.conf:system/etc/wifi/wpa_supplicant_overlay.conf
+    device/samsung/degaswifi/wifi/p2p_supplicant_overlay.conf:system/etc/wifi/p2p_supplicant_overlay.conf \
+    device/samsung/degaswifi/wifi/wpa_supplicant_overlay.conf:system/etc/wifi/wpa_supplicant_overlay.conf

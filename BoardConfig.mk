@@ -20,8 +20,6 @@
 # definition file).
 #
 
-ENABLE_HWC_GC_PATH   ?= true
-
 # Platform
 TARGET_BOARD_PLATFORM := mrvl
 
