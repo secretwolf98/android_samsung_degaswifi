@@ -68,6 +68,10 @@ BOARD_CHARGING_MODE_BOOTING_LPM := /sys/class/power_supply/battery/batt_lp_charg
 BOARD_CHARGER_SHOW_PERCENTAGE := true
 CHARGING_ENABLED_PATH := "/sys/class/power_supply/battery/batt_lp_charging"
 
+# Healthd
+TARGET_PROVIDES_LIBHEALTHD := true
+BOARD_HAL_STATIC_LIBRARIES := libhealthd.mrvl
+
 # CMHW
 BOARD_HARDWARE_CLASS += hardware/samsung/cmhw
 
