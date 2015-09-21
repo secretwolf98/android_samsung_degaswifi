@@ -1,7 +1,7 @@
 [
   {
     "remote":       "github",
-    "repository":   "GalaxyTab4/android_kernel_samsung_degas",
+    "repository":   "GalaxyTab4/android_kernel_samsung_degaswifi",
     "target_path":  "kernel/samsung/degas",
     "revision":     "lp5.1"
   },
@@ -9,7 +9,7 @@
     "remote":       "github",
     "repository":   "GalaxyTab4/android_hardware_marvell",
     "target_path":  "hardware/marvell",
-    "revision":     "lp5.1"
+    "revision":     "master"
   },
   {
     "remote":       "github",

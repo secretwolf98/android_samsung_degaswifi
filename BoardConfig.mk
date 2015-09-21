@@ -125,3 +125,25 @@ TW_NO_USB_STORAGE := true
 TW_NO_REBOOT_BOOTLOADER := true
 TW_HAS_DOWNLOAD_MODE := true
 
+# Block_Build
+Bliss_Build_Block := 1
+
+# BlissPop Configs
+#BLISS_BUILDTYPE := OFFICIAL
+BLISS_DEVELOPER := SUB77
+BLISS_WIPE_CACHES := 0
+BLISSIFY := true
+BLISS_O3 := false
+BLISS_GRAPHITE := true
+BLISS_STRICT := false
+BLISS_KRAIT := false
+BLISS_PIPE := false
+TARGET_TC_ROM := 4.9-linaro
+TARGET_TC_KERNEL := 4.9-sm
+TARGET_GCC_VERSION_EXP := $(TARGET_TC_ROM)
+TARGET_KERNEL_CUSTOM_TOOLCHAIN := $(TARGET_TC_KERNEL)
+WITH_LZMA_OTA := false
+
+#SaberMod
+-include vendor/bliss/config/sm.mk
+
