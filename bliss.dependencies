@@ -13,8 +13,8 @@
   },
   {
     "remote":       "sub",
-    "repository":   "GalaxyTab4/android_vendor_samsung",
-    "target_path":  "vendor/samsung",
+    "repository":   "GalaxyTab4/android_vendor_samsung_degaswifi",
+    "target_path":  "vendor/samsung/degaswifi",
     "revision":     "lp5.1"
   }
 ]
