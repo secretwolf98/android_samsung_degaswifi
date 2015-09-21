@@ -1,0 +1,40 @@
+From 693f0196eb6f9dc11b149fb13abd21cce2f89941 Mon Sep 17 00:00:00 2001
+From: sub77 <sub77@ymail.com>
+Date: Mon, 21 Sep 2015 21:39:59 +0200
+Subject: [PATCH] include modules to ramdisk
+
+Change-Id: Ia98cc025d1faf754af1e15e973e0d6e371ebe3f9
+---
+ core/main.mk         | 2 +-
+ core/tasks/kernel.mk | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/core/main.mk b/core/main.mk
+index 4383f98..fdd7ed3 100644
+--- a/core/main.mk
++++ b/core/main.mk
+@@ -892,7 +892,7 @@ checkbuild: droid
+ endif
+ 
+ .PHONY: ramdisk
+-ramdisk: $(INSTALLED_RAMDISK_TARGET)
++ramdisk: $(INSTALLED_RAMDISK_TARGET) $(TARGET_KERNEL_BINARIES)
+ 
+ .PHONY: factory_ramdisk
+ factory_ramdisk: $(INSTALLED_FACTORY_RAMDISK_TARGET)
+diff --git a/core/tasks/kernel.mk b/core/tasks/kernel.mk
+index aaf34ff..dcdcd8d 100644
+--- a/core/tasks/kernel.mk
++++ b/core/tasks/kernel.mk
+@@ -156,7 +156,7 @@ endif
+ ifeq ($(FULL_KERNEL_BUILD),true)
+ 
+ KERNEL_HEADERS_INSTALL := $(KERNEL_OUT)/usr
+-KERNEL_MODULES_INSTALL := system
++KERNEL_MODULES_INSTALL := root
+ KERNEL_MODULES_OUT := $(TARGET_OUT)/lib/modules
+ 
+ ifeq ($(KERNEL_TOOLCHAIN),)
+-- 
+2.1.4
+

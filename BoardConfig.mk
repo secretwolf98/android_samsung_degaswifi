@@ -121,6 +121,15 @@ TW_NO_USB_STORAGE := true
 TW_NO_REBOOT_BOOTLOADER := true
 TW_HAS_DOWNLOAD_MODE := true
 
+# Selinux
+BOARD_SEPOLICY_DIRS += device/samsung/degaswifi/sepolicy
+
+BOARD_SEPOLICY_UNION += \
+       hostapd.te \
+       platform_app.te \
+       kernel.te
+
+
 # Block_Build
 Bliss_Build_Block := 1
 
