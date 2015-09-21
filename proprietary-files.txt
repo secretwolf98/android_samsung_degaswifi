@@ -58,6 +58,9 @@ lib/libGLESv2SC.so
 lib/libceu.so
 lib/libGAL.so
 lib/libgcu.so
+# EGL added by sub77 for SultanX EGL
+lib/libgputex.so
+lib/libmvmem.so
 
 ## Audio
 bin/amixer
@@ -257,3 +260,12 @@ lib/libwvm.so
 lib/drm/libdrmwvmplugin.so
 lib/libWVStreamControlAPI_L3.so
 lib/libwvdrm_L3.so
+
+# Firmware WiFI BT
+etc/firmware/mrvl/SDIO8887_SDIO_SDIO.bin
+etc/firmware/mrvl/WlanCalData_ext.conf
+etc/firmware/mrvl/bt_cal_data.conf
+etc/firmware/mrvl/bt_init_cfg.conf
+etc/firmware/mrvl/reg_alpha2
+etc/firmware/mrvl/sd8887_uapsta.bin
+etc/firmware/mrvl/txpwrlimit_cfg.bin

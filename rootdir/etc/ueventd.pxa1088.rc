@@ -5,6 +5,9 @@
 /dev/video0 0660 media camera
 /dev/media0 0660 root camera
 /dev/uio1   0660 root camera
+/dev/video2 0660 root camera
+/dev/video3 0660 root camera
+/dev/video4 0660 root camera
 /dev/video5 0660 root camera
 /dev/video6 0660 root camera
 /dev/video7 0660 root camera
@@ -13,6 +16,10 @@
 /dev/v4l-subdev1 0660 root camera
 /dev/v4l-subdev2 0660 root camera
 /dev/v4l-subdev3 0660 root camera
+/dev/v4l-subdev4 0660 root camera
+/dev/v4l-subdev5 0660 root camera
+/dev/v4l-subdev6 0660 root camera
+/dev/v4l-subdev7 0660 root camera
 /dev/cctdatadev0 0640 system system
 /dev/cctdatadev1 0660 radio bluetooth
 /dev/cidatatty* 0640 radio radio
@@ -26,7 +33,7 @@
 /dev/pmem_wc 0660 system camera
 /dev/ion 0666 system graphics
 /dev/cnm 0660 media media
-/dev/uio0 0660 media media
+/dev/uio0 0660 media system
 /dev/rfkill 0660 system wifi
 /dev/video1 0660 system system
 /dev/geu 0660 media system
@@ -41,9 +48,9 @@
 /dev/alarm-poweroff 0440 system system
 # telephony
 /dev/cctdev* 0660 system system
-/dev/msocket 0660 system system
-/dev/msocket_dump 0660 system system
-/dev/diag_dump 0660 system system
+/dev/msocket 0666 system system
+/dev/msocket_dump 0666 system system
+/dev/diag_dump 0666 system system
 /dev/ccidatastub 0660 system system
 /dev/seh 0660 system system
 /dev/diagdatastub 0660 system system
@@ -54,15 +61,15 @@
 # MRD backup partition
 /dev/block/mmcblk0p2 0660 system system
 /dev/cpmem 0660 system root
-# sysscope
-/dev/block/mmcblk0p7 0660 system system
 # radio partition
-/dev/block/mmcblk0p8 0600 system root
-/sys/devices/virtual/usim_event/usim*   enable   0660  radio   system
+/dev/block/mmcblk0p11 0600 system root
 /dev/mpu 0660 system system
 /dev/mpuirq 0660 system system
 /dev/accelirq 0660 system system
 /dev/timerirq 0660 system system
+# misc partition for sku-setting
+/dev/block/mmcblk0p5 0660 system root
+/dev/kmsg 0660 root system
 
 # bluetooth
 /dev/mbtchar* 0660 system bluetooth
@@ -87,6 +94,4 @@
 /sys/devices/system/cpu/cpufreq conservative/ignore_nice_load 0644 system root
 /sys/devices/system/cpu/cpufreq conservative/sampling_down_factor 0644 system root
 
-# For Datarouter
-/dev/dun 0660 system system
-/dev/ttyGS* 0660 system system
+/dev/st21nfca 0600 nfc nfc

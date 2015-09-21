@@ -41,8 +41,8 @@ TARGET_NO_BOOTLOADER := true
 TARGET_SPECIFIC_HEADER_PATH := device/samsung/degaswifi/include
 
 # Kernel
-BOARD_CUSTOM_BOOTIMG_MK 	 := device/samsung/degaswifi/degas-mkbootimg.mk
-BOARD_CUSTOM_MK_BOOTIMG		 := device/samsung/degaswifi/degas-mkbootimg
+BOARD_CUSTOM_MKBOOTIMG := device/samsung/degaswifi/degas-mkbootimg
+BOARD_CUSTOM_BOOTIMG_MK := device/samsung/degaswifi/custom_mkbootimg.mk
 BOARD_KERNEL_BASE            := 0x10000000
 BOARD_KERNEL_PAGESIZE        := 2048
 BOARD_MKBOOTIMG_ARGS 	     := --dt device/samsung/degaswifi/rootdir/etc/boot.img-dt --ramdisk_offset 0x01000000
@@ -67,10 +67,6 @@ BACKLIGHT_PATH := "/sys/class/backlight/panel/brightness"
 BOARD_CHARGING_MODE_BOOTING_LPM := /sys/class/power_supply/battery/batt_lp_charging
 BOARD_CHARGER_SHOW_PERCENTAGE := true
 CHARGING_ENABLED_PATH := "/sys/class/power_supply/battery/batt_lp_charging"
-
-# Healthd
-TARGET_PROVIDES_LIBHEALTHD := true
-BOARD_HAL_STATIC_LIBRARIES := libhealthd.mrvl
 
 # CMHW
 BOARD_HARDWARE_CLASS += hardware/samsung/cmhw
@@ -134,11 +130,11 @@ BLISS_DEVELOPER := SUB77
 BLISS_WIPE_CACHES := 0
 BLISSIFY := true
 BLISS_O3 := false
-BLISS_GRAPHITE := true
+BLISS_GRAPHITE := false
 BLISS_STRICT := false
 BLISS_KRAIT := false
 BLISS_PIPE := false
-TARGET_TC_ROM := 4.9-linaro
+TARGET_TC_ROM := 5.1-linaro
 TARGET_TC_KERNEL := 4.9-sm
 TARGET_GCC_VERSION_EXP := $(TARGET_TC_ROM)
 TARGET_KERNEL_CUSTOM_TOOLCHAIN := $(TARGET_TC_KERNEL)

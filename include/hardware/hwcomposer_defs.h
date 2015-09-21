@@ -32,13 +32,11 @@ __BEGIN_DECLS
 
 #define HWC_MODULE_API_VERSION_0_1  HARDWARE_MODULE_API_VERSION(0, 1)
 
-#define HWC_DEVICE_API_VERSION_0_1  HARDWARE_DEVICE_API_VERSION_2(0, 1, HWC_HEADER_VERSION)
-#define HWC_DEVICE_API_VERSION_0_2  HARDWARE_DEVICE_API_VERSION_2(0, 2, HWC_HEADER_VERSION)
-#define HWC_DEVICE_API_VERSION_0_3  HARDWARE_DEVICE_API_VERSION_2(0, 3, HWC_HEADER_VERSION)
 #define HWC_DEVICE_API_VERSION_1_0  HARDWARE_DEVICE_API_VERSION_2(1, 0, HWC_HEADER_VERSION)
 #define HWC_DEVICE_API_VERSION_1_1  HARDWARE_DEVICE_API_VERSION_2(1, 1, HWC_HEADER_VERSION)
 #define HWC_DEVICE_API_VERSION_1_2  HARDWARE_DEVICE_API_VERSION_2(1, 2, HWC_HEADER_VERSION)
 #define HWC_DEVICE_API_VERSION_1_3  HARDWARE_DEVICE_API_VERSION_2(1, 3, HWC_HEADER_VERSION)
+#define HWC_DEVICE_API_VERSION_1_4  HARDWARE_DEVICE_API_VERSION_2(1, 4, HWC_HEADER_VERSION)
 
 enum {
     /* hwc_composer_device_t::set failed in EGL */
@@ -65,21 +63,7 @@ enum {
      * SurfaceFlinger will only honor this flag when the layer has no blending
      *
      */
-    HWC_HINT_CLEAR_FB       = 0x00000002,
-
-    /*
-     * HWC sets HWC_HINT_DRAW_TV_HINT to tell SurfaceFlinger that it should draw an
-     * hint to tell use that video is showing on external HDMI device
-     *
-     */
-    HWC_HINT_DRAW_TV_HINT       = 0x00010000,
-
-    /*
-     * HWC sets HWC_HINT_CLEAR_TV_HINT to tell SurfaceFlinger that it should clear
-     * tv hint
-     *
-     */
-    HWC_HINT_CLEAR_TV_HINT       = 0x00020000,
+    HWC_HINT_CLEAR_FB       = 0x00000002
 };
 
 /*
@@ -98,8 +82,26 @@ enum {
      * HWC_OVERLAY_SKIP_LAYER indicate HWC will not let the layer goto
      * overlay. Add this as Marvell's HWC divide into Overlay and Baselay.
      */
+#ifdef MRVL_HARDWARE
     HWC_OVERLAY_SKIP_LAYER = 0x00010000,
-    HWC_SCREENSHOT_ANIMATOR_LAYER = 0x00000002,
+#endif
+
+    /*
+     * HWC_IS_CURSOR_LAYER is set by surfaceflinger to indicate that this
+     * layer is being used as a cursor on this particular display, and that
+     * surfaceflinger can potentially perform asynchronous position updates for
+     * this layer. If a call to prepare() returns HWC_CURSOR_OVERLAY for the
+     * composition type of this layer, then the hwcomposer will allow async
+     * position updates to this layer via setCursorPositionAsync().
+     */
+    HWC_IS_CURSOR_LAYER = 0x00000002,
+
+    /*
+     * HWC_SCREENSHOT_ANIMATOR_LAYER is set by surfaceflinger to indicate that this
+     * layer is a screenshot animating layer.  HWC uses this info to disable rotation
+     * animation on External Display
+     */
+    HWC_SCREENSHOT_ANIMATOR_LAYER = 0x00000004
 };
 
 /*
@@ -120,26 +122,31 @@ enum {
      * Added in HWC_DEVICE_API_VERSION_1_1. */
     HWC_FRAMEBUFFER_TARGET = 3,
 
-    /* this layer will be handled in the HWC, using a blit engine */
-    HWC_BLIT = 4,
+    /* this layer's contents are taken from a sideband buffer stream.
+     * Added in HWC_DEVICE_API_VERSION_1_4. */
+    HWC_SIDEBAND = 4,
 
     /* this layer's composition will be handled by hwcomposer by dedicated
        cursor overlay hardware. hwcomposer will also all async position updates
        of this layer outside of the normal prepare()/set() loop. Added in
        HWC_DEVICE_API_VERSION_1_4. */
-    HWC_CURSOR_OVERLAY =  7,
+    HWC_CURSOR_OVERLAY =  5,
+
+    /* this layer will be handled in the HWC, using a blit engine */
+    HWC_BLIT = 6,
 
    /* HWC_2D is not used by compositionType, only used to count HWC_2D layers
      * that go to HWC and use GC 2D Blit, compositionType will be other values defined privately
      * in HWC_2D.
      */
-    HWC_2D = 5,
+#ifdef MRVL_HARDWARE
+    HWC_2D = 7,
 
     /* HWC_2D_TARGET is for virtual GCU blit in HWC.
      */
-    HWC_2D_TARGET = 6,
+    HWC_2D_TARGET = 8,
+#endif
 };
-
 /*
  * hwc_layer_t::blending values
  */
@@ -154,7 +161,9 @@ enum {
     HWC_BLENDING_COVERAGE = 0x0405,
 
     /* Dim layer */
+#ifdef MRVL_HARDWARE
     HWC_BLENDING_DIM      = 0x0805,
+#endif
 };
 
 /*
@@ -176,13 +185,11 @@ enum {
 /* attributes queriable with query() */
 enum {
     /*
-     * Availability: HWC_DEVICE_API_VERSION_0_2
      * Must return 1 if the background layer is supported, 0 otherwise.
      */
     HWC_BACKGROUND_LAYER_SUPPORTED      = 0,
 
     /*
-     * Availability: HWC_DEVICE_API_VERSION_0_3
      * Returns the vsync period in nanoseconds.
      *
      * This query is not used for HWC_DEVICE_API_VERSION_1_1 and later.
@@ -195,12 +202,6 @@ enum {
      * Returns a mask of supported display types.
      */
     HWC_DISPLAY_TYPES_SUPPORTED         = 2,
-
-    /*
-     * Returns the maximum supported width for virtual displays that need
-     * to use WriteBack.
-     */
-    HWC_MAX_WRITEBACK_WIDTH                = 3,
 };
 
 /* display attributes returned by getDisplayAttributes() */
@@ -225,7 +226,14 @@ enum {
      */
     HWC_DISPLAY_DPI_X                       = 4,
     HWC_DISPLAY_DPI_Y                       = 5,
-    HWC_DISPLAY_FORMAT                      = 6,
+    /* Indicates if the display is secure
+     * For HDMI/WFD if the sink supports HDCP, it will be true
+     * Primary panel is always considered secure
+     */
+    HWC_DISPLAY_SECURE                      = 6,
+#ifdef MRVL_HARDWARE
+    HWC_DISPLAY_FORMAT                      = 7,
+#endif
 };
 
 /* Allowed events for hwc_methods::eventControl() */
@@ -248,6 +256,32 @@ enum {
     HWC_DISPLAY_PRIMARY_BIT     = 1 << HWC_DISPLAY_PRIMARY,
     HWC_DISPLAY_EXTERNAL_BIT    = 1 << HWC_DISPLAY_EXTERNAL,
     HWC_DISPLAY_VIRTUAL_BIT     = 1 << HWC_DISPLAY_VIRTUAL,
+};
+
+/* Display power modes */
+enum {
+    /* The display is turned off (blanked). */
+    HWC_POWER_MODE_OFF      = 0,
+    /* The display is turned on and configured in a low power state
+     * that is suitable for presenting ambient information to the user,
+     * possibly with lower fidelity than normal but greater efficiency. */
+    HWC_POWER_MODE_DOZE     = 1,
+    /* The display is turned on normally. */
+    HWC_POWER_MODE_NORMAL   = 2,
+    /* The display is configured as in HWC_POWER_MODE_DOZE but may
+     * stop applying frame buffer updates from the graphics subsystem.
+     * This power mode is effectively a hint from the doze dream to
+     * tell the hardware that it is done drawing to the display for the
+     * time being and that the display should remain on in a low power
+     * state and continue showing its current contents indefinitely
+     * until the mode changes.
+     *
+     * This mode may also be used as a signal to enable hardware-based doze
+     * functionality.  In this case, the doze dream is effectively
+     * indicating that the hardware is free to take over the display
+     * and manage it autonomously to implement low power always-on display
+     * functionality. */
+    HWC_POWER_MODE_DOZE_SUSPEND  = 3,
 };
 
 /*****************************************************************************/

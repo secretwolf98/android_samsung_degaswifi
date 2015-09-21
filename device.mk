@@ -42,12 +42,7 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
 	lib_driver_cmd_mrvl \
     libion \
-	libGLES_android \
-	libsigchain
-
-# healthd 
-PRODUCT_PACKAGES += \
-	libhealthd.mrvl
+	libGLES_android
 
 # we have enough storage space to hold precise GC data
 PRODUCT_TAGS += dalvik.gc.type-precise
