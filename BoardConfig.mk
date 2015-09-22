@@ -71,17 +71,39 @@ CHARGING_ENABLED_PATH := "/sys/class/power_supply/battery/batt_lp_charging"
 # CMHW
 BOARD_HARDWARE_CLASS += hardware/samsung/cmhw
 
+# no hardware camera
+USE_CAMERA_STUB := false
+
 # Display
+MRVL_ION := true
+TARGET_HARDWARE_3D := false
+BUILD_EMULATOR_OPENGL := false
 USE_OPENGL_RENDERER := true
-COMMON_GLOBAL_FLAGS += -DSK_SUPPORT_LEGACY_SETCONFIG
 
-# Malloc
-MALLOC_IMPL := dlmalloc
+#PRODUCT_AAPT_CONFIG := normal hdpi xhdpi
+PRODUCT_AAPT_PREF_CONFIG := hdpi
 
-# MRVL
-BOARD_USES_MARVELL_HWC_ENHANCEMENT := true
-COMMON_GLOBAL_CFLAGS += -DMARVELL_HWC_ENHANCEMENT
-ENABLE_HWC_GC_PATH   := true
+# The above lines are almost the same as Brownstone.
+# MMP3 Special
+TARGET_CPU_SMP := true
+BOARD_USE_VIVANTE_GRALLOC := true
+HDMI_SUPPORT_3D := true
+
+BOARD_GFX_DRIVER_VERSION=4x
+
+#Enable marvell interface in SurfaceFlinger
+MRVL_INTERFACE_ANIMATION := true
+ENABLE_HWC_GC_PATH := true
+
+#Launch DMS in SurfaceFlinger process
+MRVL_LAUNCH_DMS_IN_SURFACEFLINGER := true
+BOARD_USES_GENERIC_AUDIO := false
+BOARD_USES_ALSA_AUDIO := true
+BUILD_WITH_ALSA_UTILS := true
+BOARD_DEFAULT_SAMPLE_RATE := 48000
+AUDIO_USES_48K := true
+
+ARCH_ARM_HAVE_NEON := true
 
 # Partitions
 BOARD_BOOTIMAGE_PARTITION_SIZE := 12582912
@@ -91,8 +113,8 @@ BOARD_USERDATAIMAGE_PARTITION_SIZE := 5775556608
 BOARD_FLASH_BLOCK_SIZE := 4096
 
 # Pre-L Compatibility
-BOARD_USES_LEGACY_MMAP := true
-COMMON_GLOBAL_CFLAGS += -DADD_LEGACY_ACQUIRE_BUFFER_SYMBOL
+#BOARD_USES_LEGACY_MMAP := true
+#COMMON_GLOBAL_CFLAGS += -DADD_LEGACY_ACQUIRE_BUFFER_SYMBOL
 
 # Recovery
 COMMON_GLOBAL_CFLAGS += -DNO_SECURE_DISCARD
@@ -130,6 +152,13 @@ BOARD_SEPOLICY_UNION += \
        platform_app.te \
        kernel.te
 
+# Enable dex-preoptimization to speed up the first boot sequence
+# of an SDK AVD. Note that this operation only works on Linux for now
+ifeq ($(HOST_OS),linux)
+  ifeq ($(WITH_DEXPREOPT),)
+    WITH_DEXPREOPT := true
+  endif
+endif
 
 # Block_Build
 Bliss_Build_Block := 1

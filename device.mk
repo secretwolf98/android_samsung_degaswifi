@@ -22,56 +22,61 @@ PRODUCT_CHARACTERISTICS := tablet
 # Overlay
 DEVICE_PACKAGE_OVERLAYS += device/samsung/degaswifi/overlay
 
-# Permissions
+# permissions that we supported
 PRODUCT_COPY_FILES += \
-    frameworks/native/data/etc/android.hardware.bluetooth_le.xml:system/etc/permissions/android.hardware.bluetooth_le.xml \
-    frameworks/native/data/etc/android.hardware.camera.front.xml:system/etc/permissions/android.hardware.camera.front.xml \
-    frameworks/native/data/etc/android.hardware.camera.xml:system/etc/permissions/android.hardware.camera.xml \
-    frameworks/native/data/etc/android.hardware.location.gps.xml:system/etc/permissions/android.hardware.location.gps.xml \
-    frameworks/native/data/etc/android.hardware.sensor.light.xml:system/etc/permissions/android.hardware.sensor.light.xml \
-    frameworks/native/data/etc/android.hardware.touchscreen.multitouch.jazzhand.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.jazzhand.xml \
-    frameworks/native/data/etc/android.hardware.usb.accessory.xml:system/etc/permissions/android.hardware.usb.accessory.xml \
-    frameworks/native/data/etc/android.hardware.usb.host.xml:system/etc/permissions/android.hardware.usb.host.xml \
-    frameworks/native/data/etc/android.hardware.wifi.direct.xml:system/etc/permissions/android.hardware.wifi.direct.xml \
-    frameworks/native/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
-    frameworks/native/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml \
+    frameworks/native/data/etc/tablet_core_hardware.xml:system/etc/permissions/tablet_core_hardware.xml	\
+    frameworks/native/data/etc/android.hardware.location.xml:system/etc/permissions/android.hardware.location.xml	\
+    frameworks/native/data/etc/android.hardware.touchscreen.multitouch.jazzhand.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.jazzhand.xml	\
+    frameworks/native/data/etc/android.hardware.usb.accessory.xml:system/etc/permissions/android.hardware.usb.accessory.xml	\
+    frameworks/native/data/etc/android.hardware.usb.host.xml:system/etc/permissions/android.hardware.usb.host.xml	\
+    frameworks/native/data/etc/android.hardware.sensor.accelerometer.xml:system/etc/permissions/android.hardware.sensor.accelerometer.xml \
     frameworks/native/data/etc/android.software.sip.xml:system/etc/permissions/android.software.sip.xml	\
-    frameworks/native/data/etc/tablet_core_hardware.xml:system/etc/permissions/tablet_core_hardware.xml
+    frameworks/native/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml \
+    frameworks/native/data/etc/android.hardware.camera.xml:system/etc/permissions/android.hardware.camera.xml \
+    frameworks/native/data/etc/android.hardware.camera.front.xml:system/etc/permissions/android.hardware.camera.front.xml \
+    frameworks/native/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
+    frameworks/native/data/etc/android.hardware.bluetooth.xml:system/etc/permissions/android.hardware.bluetooth.xml \
+    frameworks/native/data/etc/android.hardware.bluetooth_le.xml:system/etc/permissions/android.hardware.bluetooth_le.xml \
+    frameworks/native/data/etc/android.hardware.consumerir.xml:system/etc/permissions/android.hardware.consumerir.xml
 
-# 
+
+# GPU: for new driver version
 PRODUCT_PACKAGES += \
-	libion 
+    libGLESv1_CM_MRVL \
+    libGLESv2_MRVL \
+    libEGL_MRVL \
+    libGLESv2 \
+    libGLESv2SC \
+    gfx.cfg
 
-#	lib_driver_cmd_mrvl \
-#	libGLES_android
+# special binaries
+PRODUCT_PACKAGES += \
+    e2fsck \
+    resize2fs \
+    sfdisk \
+    busybox 
 
-# we have enough storage space to hold precise GC data
-PRODUCT_TAGS += dalvik.gc.type-precise
-
-# Set property overrides
+# system property sets
 PRODUCT_PROPERTY_OVERRIDES += \
-    ro.zygote.disable_gl_preload=true \
-    ro.cm.hardware.cabc=/sys/class/mdnie/mdnie/cabc \
-    ro.bq.gpu_to_cpu_unsupported=1 \
-    wifi.interface=wlan0 \
-    wifi.softap.interface=wlan0 \
-    wifi.supplicant_scan_interval=30 \
-    dalvik.vm.heapsize=128m \
-    ro.carrier=wifi-only
-	
-DEFAULT_PROPERTY_OVERRIDES += \
-    ro.secure=0 \
-    ro.allow.mock.location=1 \
-    ro.debuggable=1 \
-    persist.service.adb.enable=1 \
-    persist.sys.usb.config=mtp,adb \
-    sys.disable_ext_animation=1
+    dalvik.vm.heapstartsize=5m \
+    dalvik.vm.heapgrowthlimit=48m \
+    dalvik.vm.heapsize=192m \
+    ro.sf.lcd_density=200 \
+    ro.phone.enabled=false \
+	ro.carrier=wifi-only \
+    persist.fuse_sdcard=true \
+    ro.product.board=xo4 \
+    persist.sys.mrvl_wl_recovery=0 \
+    persist.service.camera.cnt=1 \
+    persist.sys.country=US \
+    persist.sys.language=en \
+    persist.sys.timezone=Pacific/Auckland
 
 
 # Screen density
-PRODUCT_AAPT_CONFIG := large
-PRODUCT_AAPT_PREF_CONFIG := mdpi
-PRODUCT_LOCALES += mdpi
+#PRODUCT_AAPT_CONFIG := large
+#PRODUCT_AAPT_PREF_CONFIG := mdpi
+#PRODUCT_LOCALES += mdpi
 
 # Boot animation
 TARGET_SCREEN_HEIGHT := 1280
@@ -79,10 +84,9 @@ TARGET_SCREEN_WIDTH  := 800
 
 $(call inherit-product, frameworks/native/build/tablet-7in-hdpi-1024-dalvik-heap.mk)
 
-# Audio
 PRODUCT_PACKAGES += \
-    audio.a2dp.default \
-    audio.r_submix.default
+    audio.primary.mrvl \
+    audio_policy.stub
 
 # Audio configuration
 PRODUCT_COPY_FILES += \
@@ -133,16 +137,58 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     com.android.future.usb.accessory
 
-# Disable SELinux
-PRODUCT_PROPERTY_OVERRIDES += \
-    ro.boot.selinux=disabled
-
-# Wifi
 PRODUCT_PACKAGES += \
+    libwpa_client \
     hostapd \
-    MarvellWirelessDaemon \
+    dhcpcd.conf \
     wpa_supplicant \
-    wpa_supplicant.conf 
+    wpa_supplicant.conf
+
+PRODUCT_PACKAGES += \
+    MarvellWirelessDaemon \
+    libMarvellWireless \
+    rfkill \
+
+# Wifi extention tools
+PRODUCT_PACKAGES += \
+	iperf \
+	wireless_tool \
+	iwconfig \
+	iwlist \
+	iwpriv \
+	iwspy \
+	iwgetid \
+	iwevent \
+	ifrename \
+	macadd \
+	WapiCertMgmt \
+	simal \
+
+# Bluetooth
+PRODUCT_PACKAGES += \
+	sdptool \
+	hciconfig \
+	hcitool \
+	l2ping \
+	hciattach \
+	rfcomm \
+	avinfo \
+
+# GPU: alloc
+BOARD_EGL_CFG := device/samsung/degaswifi/egl.cfg
+PRODUCT_PACKAGES += \
+    gralloc.mrvl \
+
+# HWC HAL
+PRODUCT_PACKAGES += \
+    hwcomposer.mrvl \
+    libHWComposerGC
+
+# multimedia modules except gst, include IPP, bmm/pmem, opencore...
+PRODUCT_PACKAGES += \
+    libstagefrighthw  \
+    libvmeta \
+    libI420colorconvert
 
 PRODUCT_COPY_FILES += \
     device/samsung/degaswifi/wifi/p2p_supplicant_overlay.conf:system/etc/wifi/p2p_supplicant_overlay.conf \

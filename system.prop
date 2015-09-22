@@ -8,14 +8,3 @@ camera2.portability.force_api=1
 ro.opengles.version=131072
 
 
-# lcd density
-ro.sf.lcd_density=213
-
-# wifi only
-ro.carrier=wifi-only
-
-# telephone configuration path
-ro.tel.config.path=/system/etc/tel/
-
-# adaptive backlight
-ro.cm.hardware.cabc=/sys/class/mdnie/mdnie/cabc
