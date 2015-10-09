@@ -1,3 +1,28 @@
+LOCAL_PATH := $(call my-dir)
+
+## Don't change anything under here. The variables are named MSM8226_whatever
+## on purpose, to avoid conflicts with similarly named variables at other
+## parts of the build environment
+
+## Imported from the original makefile...
+KERNEL_CONFIG := $(KERNEL_OUT)/.config
+MSM8226_DTS_NAMES := msm8226
+
+MSM8226_DTS_FILES = $(wildcard $(TOP)/$(TARGET_KERNEL_SOURCE)/arch/arm/boot/dts/.pxa1088-degaswifiusa-*.dts)
+MSM8226_DTS_FILE = $(lastword $(subst /, ,$(1)))
+DTB_FILE = $(addprefix $(KERNEL_OUT)/arch/arm/boot/dts/,$(patsubst %.dts,%.dtb,$(call MSM8226_DTS_FILE,$(1))))
+ZIMG_FILE = $(addprefix $(KERNEL_OUT)/arch/arm/boot/dts/,$(patsubst %.dts,%-zImage,$(call MSM8226_DTS_FILE,$(1))))
+KERNEL_ZIMG = $(KERNEL_OUT)/arch/arm/boot/zImage
+DTC = $(KERNEL_OUT)/scripts/dtc/dtc
+
+define append-msm8226-dtb
+mkdir -p $(KERNEL_OUT)/arch/arm/boot;\
+$(foreach MSM8226_DTS_NAME, $(MSM8226_DTS_NAMES), \
+   $(foreach d, $(MSM8226_DTS_FILES), \
+      $(DTC) -p 1024 -O dtb -o $(call DTB_FILE,$(d)) $(d); \
+      cat $(KERNEL_ZIMG) $(call DTB_FILE,$(d)) > $(call ZIMG_FILE,$(d));))
+endef
+
 ## Build and run dtbtool
 DTBTOOL := device/samsung/degaswifi/degas-dtbtool
 BOARD_CUSTOM_MKBOOTIMG := device/samsung/degaswifi/degas-mkbootimg
@@ -26,3 +51,6 @@ $(INSTALLED_BOOTIMAGE_TARGET): $(BOARD_CUSTOM_MKBOOTIMG) $(INTERNAL_BOOTIMAGE_FI
 	$(hide) $(BOARD_CUSTOM_MKBOOTIMG) $(INTERNAL_BOOTIMAGE_ARGS) $(BOARD_MKBOOTIMG_ARGS) --dt $(INSTALLED_DTIMAGE_TARGET) --output $@
 	$(hide) $(call assert-max-image-size,$@,$(BOARD_BOOTIMAGE_PARTITION_SIZE),raw)
 	@echo -e ${CL_CYN}"Made boot image: $@"${CL_RST}
+
+
+

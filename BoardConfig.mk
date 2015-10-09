@@ -45,7 +45,7 @@ TARGET_GLOBAL_CPPFLAGS += -mtune=cortex-a9 -mfpu=neon -mfloat-abi=softfp
 
 # Kernel
 TARGET_KERNEL_SOURCE 	:= kernel/samsung/degaswifi
-TARGET_KERNEL_CONFIG	:= cyanogenmod_degaswifi_defconfig
+TARGET_KERNEL_CONFIG	:= pxa1088_degaswifi_eur_defconfig
 BOARD_KERNEL_BASE 		:= 0x10000000
 BOARD_KERNEL_PAGESIZE 	:= 2048
 BOARD_KERNEL_CMDLINE 	:= 
@@ -85,21 +85,28 @@ BOARD_HAVE_BLUETOOTH_MRVL := true
 MRVL_WIRELESS_DAEMON_API := true
 
 # WiFi
-BOARD_WLAN_VENDOR 				:= MRVL
-WIFI_DRIVER_MODULE_PATH 		:= "/system/lib/modules/sd8xxx.ko"
-WIFI_DRIVER_MODULE_NAME			:= "sd8xxx"
-WIFI_DRIVER_MODULE_ARG 			:= "firmware_path=/system/etc/firmware/mrvl/sd8887_uapsta.bin cfg80211_wext=12 sta_name=wlan uap_name=wlan wfd_name=p2p fw_name=mrvl/sd8887_uapsta.bin"
-WIFI_DRIVER_FW_PATH_PARAM 		:= "/sys/module/sd8xxx/parameters/firmware_path"
-WIFI_DRIVER_FW_PATH_STA 		:= "/system/etc/firmware/mrvl/sd8887_uapsta.bin"
-WIFI_DRIVER_FW_PATH_AP 			:= "/system/etc/firmware/mrvl/sd8887_uapsta.bin"
-WIFI_DRIVER_FW_PATH_P2P 		:= "/system/etc/firmware/mrvl/sd8887_uapsta.bin"
-WIFI_SDIO_IF_DRIVER_MODULE_PATH := "/system/lib/modules/mlan.ko"
-WIFI_SDIO_IF_DRIVER_MODULE_NAME := "mlan"
-WIFI_SDIO_IF_DRIVER_MODULE_ARG 	:= ""
+BOARD_WPA_SUPPLICANT_DRIVER := NL80211
+WPA_SUPPLICANT_VERSION := VER_0_8_X
+BOARD_WPA_SUPPLICANT_PRIVATE_LIB := lib_driver_cmd_mrvl8887
+BOARD_HOSTAPD_DRIVER := NL80211
+BOARD_HOSTAPD_PRIVATE_LIB := lib_driver_cmd_mrvl8887
+BOARD_WLAN_DEVICE := mrvl8887
+BOARD_WLAN_VENDOR := MRVL
+WIFI_SDIO_IF_DRIVER_MODULE_PATH  := "/system/lib/modules/mlan.ko"
+WIFI_SDIO_IF_DRIVER_MODULE_NAME  := "mlan"
+WIFI_SDIO_IF_DRIVER_MODULE_ARG   := ""
+WIFI_DRIVER_MODULE_PATH := "/system/lib/modules/sd8887.ko"
+WIFI_DRIVER_MODULE_NAME := "sd8887"
+WIFI_DRIVER_MODULE_ARG  := "drv_mode=5 cfg80211_wext=0xc sta_name=wlan uap_name=wlan wfd_name=p2p max_uap_bss=1 fw_name=mrvl/sd8887_uapsta.bin"
+WIFI_DRIVER_FW_PATH_PARAM := "/proc/mwlan/config"
+WIFI_DRIVER_FW_PATH_STA := "drv_mode=5"
+WIFI_DRIVER_FW_PATH_AP :=  "drv_mode=6"
+WIFI_DRIVER_FW_PATH_P2P := "drv_mode=5"
 MRVL_WIRELESS_DAEMON_API 		:= true
 
 WLAN_MODULES:
 	mv $(KERNEL_MODULES_OUT)/sd8xxx.ko $(KERNEL_MODULES_OUT)/sd8887.ko
+#	mv $(KERNEL_MODULES_OUT)/mbt8xxx.ko $(KERNEL_MODULES_OUT)/bt8887.ko
 
 TARGET_KERNEL_MODULES += WLAN_MODULES
 
@@ -144,7 +151,7 @@ BOARD_HAVE_OLD_ION_API := true
 # The above lines are almost the same as Brownstone.
 # MMP3 Special
 BOARD_USE_VIVANTE_GRALLOC := true
-HDMI_SUPPORT_3D := true
+#HDMI_SUPPORT_3D := true
 
 #BOARD_GFX_DRIVER_VERSION=4x
 
