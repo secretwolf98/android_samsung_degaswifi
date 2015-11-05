@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+<remote name="sub" fetch="ssh://git@github.com" />
+  <project path="device/samsung/degaswifi" name="GalaxyTab4/maxicm_device_samsung_degaswifi" remote="sub" revision="cm-11.0"/>
+  <project path="device/samsung/marvell-common" name="GalaxyTab4/maxicm_device_samsung_marvell-common" remote="sub" revision="cm-11.0"/>
+  <project path="device/qcom/common"       name="CyanogenMod/android_device_qcom_common" remote="github" revision="cm-11.0"/>
+  <project path="kernel/samsung/degaswifi" name="GalaxyTab4/maxicm_kernel_samsung_degaswifi" remote="sub" revision="3.10"/>
+  <project path="vendor/samsung"           name="GalaxyTab4/maxicm_vendor_samsung"           remote="sub" revision="cm-11.0"/>
+  <project path="hardware/marvell"         name="GalaxyTab4/android_hardware_marvell"        remote="sub" revision="cm-11.0"/> 
+</manifest>

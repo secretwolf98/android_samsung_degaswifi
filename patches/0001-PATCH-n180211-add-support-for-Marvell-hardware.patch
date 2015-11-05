@@ -1,0 +1,30 @@
+From a9b653823308c8172be347d97eb30cbf883678b0 Mon Sep 17 00:00:00 2001
+From: sub77 <sub77@ymail.com>
+Date: Thu, 5 Nov 2015 21:54:50 +0100
+Subject: [PATCH] [PATCH] n180211: add support for Marvell hardware
+
+Change-Id: I4d26bf961eda6082c4af26025fd57c01de6e2958
+---
+ src/drivers/driver_nl80211.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/src/drivers/driver_nl80211.c b/src/drivers/driver_nl80211.c
+index 84e3109..4314892 100644
+--- a/src/drivers/driver_nl80211.c
++++ b/src/drivers/driver_nl80211.c
+@@ -621,11 +621,7 @@ static int send_and_recv_msgs_global(struct nl80211_global *global,
+ 			     valid_data);
+ }
+ 
+-
+-#ifndef ANDROID
+-static
+-#endif
+-int send_and_recv_msgs(struct wpa_driver_nl80211_data *drv,
++extern int send_and_recv_msgs(struct wpa_driver_nl80211_data *drv,
+ 			      struct nl_msg *msg,
+ 			      int (*valid_handler)(struct nl_msg *, void *),
+ 			      void *valid_data)
+-- 
+2.5.0
+

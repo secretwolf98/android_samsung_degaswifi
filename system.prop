@@ -1,6 +1,16 @@
 #
 # system.prop for degaswifi
+
 #
-ro.zygote.disable_gl_preload=true
-ro.opengles.version = 131072
+
+camera2.portability.force_api=1
+
+# set opengles version as 0x20000
+ro.opengles.version=131072
+
+# lcd density
 ro.sf.lcd_density=213
+
+# wifi only
+ro.carrier=wifi-only
+
