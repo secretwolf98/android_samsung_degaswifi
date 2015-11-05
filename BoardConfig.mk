@@ -37,6 +37,7 @@ TARGET_SPECIFIC_HEADER_PATH := device/samsung/degaswifi/include
 BOARD_KERNEL_BASE            := 0x10000000
 BOARD_KERNEL_PAGESIZE        := 2048
 BOARD_MKBOOTIMG_ARGS         := --dt device/samsung/degaswifi/rootdir/boot.img-dt --ramdisk_offset 0x01000000
+BOARD_CUSTOM_BOOTIMG_MK      := device/samsung/degaswifi/degaswifi_mkbootimg.mk
 TARGET_KERNEL_SOURCE         := kernel/samsung/degaswifi
 TARGET_KERNEL_CONFIG         := cyanogenmod_seoffnomod_defconfig
 
