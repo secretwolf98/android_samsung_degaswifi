@@ -15,12 +15,12 @@
 # Inherit from those products. Most specific first.
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
 
-# Inherit makefile
-$(call inherit-product, device/samsung/degaswifi/device.mk)
-
 # Set those variables here to overwrite the inherited values.
-PRODUCT_NAME := full_degaswifi
+PRODUCT_NAME := degaswifi
 PRODUCT_DEVICE := degaswifi
 PRODUCT_BRAND := samsung
 PRODUCT_MANUFACTURER := samsung
 PRODUCT_MODEL := SM-T230NU
+
+$(call inherit-product, device/samsung/degaswifi/device.mk)
+$(call inherit-product-if-exists, vendor/samsung/degaswifi/degaswifi-vendor.mk)

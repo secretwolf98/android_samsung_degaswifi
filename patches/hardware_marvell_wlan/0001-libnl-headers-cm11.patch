@@ -1,0 +1,26 @@
+From 6ef3b26a2e54088d7267d3be93b103a51b639937 Mon Sep 17 00:00:00 2001
+From: sub77 <sub77@ymail.com>
+Date: Fri, 6 Nov 2015 04:28:46 +0100
+Subject: [PATCH] libnl-headers cm11
+
+Change-Id: I0c2858d1299c58846176c241d568d5b6e4e626c4
+---
+ mrvl/wpa_supplicant_8_lib/Android.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mrvl/wpa_supplicant_8_lib/Android.mk b/mrvl/wpa_supplicant_8_lib/Android.mk
+index cce3602..bf12a30 100644
+--- a/mrvl/wpa_supplicant_8_lib/Android.mk
++++ b/mrvl/wpa_supplicant_8_lib/Android.mk
+@@ -35,7 +35,7 @@ WPA_SUPPL_DIR_INCLUDE = $(WPA_SUPPL_DIR)/src \
+ 	$(WPA_SUPPL_DIR)/wpa_supplicant
+ 
+ ifdef CONFIG_DRIVER_NL80211
+-WPA_SUPPL_DIR_INCLUDE += external/libnl/include
++WPA_SUPPL_DIR_INCLUDE += external/libnl-headers
+ WPA_SRC_FILE += driver_cmd_nl80211.c
+ endif
+ 
+-- 
+2.5.0
+
