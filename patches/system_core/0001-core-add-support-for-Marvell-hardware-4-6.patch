@@ -1,0 +1,32 @@
+From 2f1a635efe8a1b211d96cdf66256aeb7528d6d6e Mon Sep 17 00:00:00 2001
+From: Youxin Su <suyouxin@gmail.com>
+Date: Fri, 14 Nov 2014 23:22:20 +1300
+Subject: [PATCH 1/2] core: add support for Marvell hardware (4/6)
+
+Change-Id: I60d2aa22410ad0a704fb82304a1f2b71fcba3cb2
+---
+ include/system/graphics.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/include/system/graphics.h b/include/system/graphics.h
+index 946073f..3349e1a 100644
+--- a/include/system/graphics.h
++++ b/include/system/graphics.h
+@@ -251,6 +251,14 @@ enum {
+     HAL_PIXEL_FORMAT_YCbCr_422_SP       = 0x10, // NV16
+     HAL_PIXEL_FORMAT_YCrCb_420_SP       = 0x11, // NV21
+     HAL_PIXEL_FORMAT_YCbCr_422_I        = 0x14, // YUY2
++
++    /* Marvell extended */
++#ifdef MRVL_HARDWARE
++    HAL_PIXEL_FORMAT_YCbCr_420_P        = 0x13, // YUV420, I420
++    HAL_PIXEL_FORMAT_YCbCr_420_I        = 0x15,
++    HAL_PIXEL_FORMAT_CbYCrY_422_I       = 0x16, // UYVY
++    HAL_PIXEL_FORMAT_YCbCr_420_SP_MRVL  = 0x2A, // NV12
++#endif
+ };
+ 
+ /*
+-- 
+2.5.0
+

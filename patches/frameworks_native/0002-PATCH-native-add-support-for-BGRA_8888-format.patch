@@ -1,0 +1,72 @@
+From 217475420f8d4fca7444e8ae76edea607d02cca4 Mon Sep 17 00:00:00 2001
+From: sub77 <sub77@ymail.com>
+Date: Fri, 6 Nov 2015 01:59:53 +0100
+Subject: [PATCH 2/2] [PATCH] native: add support for BGRA_8888 format
+
+Change-Id: I81688bad999450ead952329cb271269d73bcd55f
+---
+ opengl/libs/Android.mk                                 | 3 +++
+ services/surfaceflinger/Android.mk                     | 4 ++++
+ services/surfaceflinger/DisplayHardware/HWComposer.cpp | 8 ++++++++
+ 3 files changed, 15 insertions(+)
+
+diff --git a/opengl/libs/Android.mk b/opengl/libs/Android.mk
+index d04a4a3..dfede57 100644
+--- a/opengl/libs/Android.mk
++++ b/opengl/libs/Android.mk
+@@ -58,6 +58,9 @@ endif
+ ifeq ($(BOARD_EGL_WORKAROUND_BUG_10194508),true)
+   LOCAL_CFLAGS += -DWORKAROUND_BUG_10194508=1
+ endif
++ifeq ($(BOARD_USE_BGRA_8888),true)
++  LOCAL_CFLAGS += -DUSE_BGRA_8888=1
++endif
+ ifneq ($(MAX_EGL_CACHE_ENTRY_SIZE),)
+   LOCAL_CFLAGS += -DMAX_EGL_CACHE_ENTRY_SIZE=$(MAX_EGL_CACHE_ENTRY_SIZE)
+ endif
+diff --git a/services/surfaceflinger/Android.mk b/services/surfaceflinger/Android.mk
+index 0166b89..64068c5 100644
+--- a/services/surfaceflinger/Android.mk
++++ b/services/surfaceflinger/Android.mk
+@@ -84,6 +84,10 @@ else
+     LOCAL_CFLAGS += -DPRESENT_TIME_OFFSET_FROM_VSYNC_NS=0
+ endif
+ 
++ifeq ($(BOARD_USE_BGRA_8888),true)
++	LOCAL_CFLAGS += -DUSE_BGRA_8888
++endif
++
+ LOCAL_CFLAGS += -fvisibility=hidden
+ 
+ LOCAL_SHARED_LIBRARIES := \
+diff --git a/services/surfaceflinger/DisplayHardware/HWComposer.cpp b/services/surfaceflinger/DisplayHardware/HWComposer.cpp
+index edf758c..308a04d 100644
+--- a/services/surfaceflinger/DisplayHardware/HWComposer.cpp
++++ b/services/surfaceflinger/DisplayHardware/HWComposer.cpp
+@@ -517,7 +517,11 @@ status_t HWComposer::queryDisplayProperties(int disp) {
+     }
+ 
+     // FIXME: what should we set the format to?
++#ifdef USE_BGRA_8888
++    mDisplayData[disp].format = HAL_PIXEL_FORMAT_BGRA_8888;
++#else
+     mDisplayData[disp].format = HAL_PIXEL_FORMAT_RGBA_8888;
++#endif
+     mDisplayData[disp].connected = true;
+     if (mDisplayData[disp].xdpi == 0.0f || mDisplayData[disp].ydpi == 0.0f) {
+         float dpi = getDefaultDensity(h);
+@@ -993,7 +997,11 @@ int HWComposer::getVisualID() const {
+         // FIXME: temporary hack until HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED
+         // is supported by the implementation. we can only be in this case
+         // if we have HWC 1.1
++#ifdef USE_BGRA_8888
++        return HAL_PIXEL_FORMAT_BGRA_8888;
++#else
+         return HAL_PIXEL_FORMAT_RGBA_8888;
++#endif
+         //return HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED;
+     } else {
+         return mFbDev->format;
+-- 
+2.5.0
+

@@ -1,0 +1,641 @@
+From e1055469c8e16f15c377df9da63a69faabee7ed7 Mon Sep 17 00:00:00 2001
+From: sub77 <sub77@ymail.com>
+Date: Fri, 6 Nov 2015 01:50:22 +0100
+Subject: [PATCH 1/2] native: add support for Marvell hardware (1/6)
+
+Change-Id: Ida32e0cd505fb64bc744da20f72ec5457ab72f0e
+---
+ include/binder/MemoryHeapBase.h                    |  11 ++
+ libs/binder/Android.mk                             |  16 ++
+ libs/binder/MemoryHeapBase.cpp                     | 163 +++++++++++++++++++++
+ opengl/include/EGL/eglext.h                        |  12 ++
+ opengl/libagl/egl.cpp                              |  44 +++++-
+ opengl/libs/EGL/eglApi.cpp                         |  28 ++++
+ services/surfaceflinger/DisplayDevice.cpp          |  20 +++
+ .../surfaceflinger/DisplayHardware/HWComposer.cpp  |  22 ++-
+ .../surfaceflinger/DisplayHardware/HWComposer.h    |   3 +
+ services/surfaceflinger/LayerDim.cpp               |  39 +++++
+ services/surfaceflinger/LayerDim.h                 |   6 +
+ services/surfaceflinger/SurfaceFlinger.cpp         |   3 +
+ 12 files changed, 365 insertions(+), 2 deletions(-)
+
+diff --git a/include/binder/MemoryHeapBase.h b/include/binder/MemoryHeapBase.h
+index ea9b66c..9c16361 100644
+--- a/include/binder/MemoryHeapBase.h
++++ b/include/binder/MemoryHeapBase.h
+@@ -87,6 +87,9 @@ protected:
+ 
+ private:
+     status_t mapfd(int fd, size_t size, uint32_t offset = 0);
++#ifdef USE_MRVL_ION
++    status_t mapion(int fd, size_t size, uint32_t offset = 0);
++#endif
+ 
+     int         mFD;
+     size_t      mSize;
+@@ -95,6 +98,14 @@ private:
+     const char* mDevice;
+     bool        mNeedUnmap;
+     uint32_t    mOffset;
++
++    /*
++     * ashmem's mFD points to heap ID & ashmem's mDevFd is -1
++     * ION's mFD points to heap ID & ION's mDevFd points to device node
++     */
++#ifdef USE_MRVL_ION
++    int         mDevFd;
++#endif
+ };
+ 
+ // ---------------------------------------------------------------------------
+diff --git a/libs/binder/Android.mk b/libs/binder/Android.mk
+index 7861fef..9547c5e 100644
+--- a/libs/binder/Android.mk
++++ b/libs/binder/Android.mk
+@@ -60,6 +60,14 @@ endif
+ LOCAL_C_INCLUDES += hardware/samsung_slsi/$(PLATFORM_DIR)/include
+ endif
+ 
++ifeq ($(strip $(BOARD_USES_MRVL_ION)), true)
++    LOCAL_CFLAGS += -DUSE_MRVL_ION
++LOCAL_C_INCLUDES += \
++    $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr/include
++LOCAL_ADDITIONAL_DEPENDENCIES := \
++    $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr
++endif
++
+ LOCAL_LDLIBS += -lpthread
+ LOCAL_MODULE := libbinder
+ LOCAL_SHARED_LIBRARIES += liblog libcutils libutils
+@@ -80,6 +88,14 @@ endif
+ LOCAL_C_INCLUDES += hardware/samsung_slsi/$(PLATFORM_DIR)/include
+ endif
+ 
++ifeq ($(strip $(BOARD_USES_MRVL_ION)), true)
++    LOCAL_CFLAGS += -DUSE_MRVL_ION
++LOCAL_C_INCLUDES += \
++    $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr/include
++LOCAL_ADDITIONAL_DEPENDENCIES := \
++    $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr
++endif
++
+ LOCAL_LDLIBS += -lpthread
+ LOCAL_MODULE := libbinder
+ LOCAL_STATIC_LIBRARIES += libutils
+diff --git a/libs/binder/MemoryHeapBase.cpp b/libs/binder/MemoryHeapBase.cpp
+index d1cbf1c..a2a9fe2 100644
+--- a/libs/binder/MemoryHeapBase.cpp
++++ b/libs/binder/MemoryHeapBase.cpp
+@@ -36,6 +36,11 @@
+ #endif
+ 
+ 
++#ifdef USE_MRVL_ION
++#include <linux/ion.h>
++#include <linux/pxa_ion.h>
++#endif
++
+ namespace android {
+ 
+ // ---------------------------------------------------------------------------
+@@ -43,12 +48,18 @@ namespace android {
+ MemoryHeapBase::MemoryHeapBase()
+     : mFD(-1), mSize(0), mBase(MAP_FAILED),
+       mDevice(NULL), mNeedUnmap(false), mOffset(0)
++#ifdef USE_MRVL_ION
++      , mDevFd(-1)
++#endif
+ {
+ }
+ 
+ MemoryHeapBase::MemoryHeapBase(size_t size, uint32_t flags, char const * name)
+     : mFD(-1), mSize(0), mBase(MAP_FAILED), mFlags(flags),
+       mDevice(0), mNeedUnmap(false), mOffset(0)
++#ifdef USE_MRVL_ION
++      , mDevFd(-1)
++#endif
+ {
+     const size_t pagesize = getpagesize();
+     size = ((size + pagesize-1) & ~(pagesize-1));
+@@ -63,6 +74,137 @@ MemoryHeapBase::MemoryHeapBase(size_t size, uint32_t flags, char const * name)
+     }
+ }
+ 
++#ifdef USE_MRVL_ION
++MemoryHeapBase::MemoryHeapBase(const char* device, size_t size, uint32_t flags)
++    : mFD(-1), mSize(0), mBase(MAP_FAILED), mFlags(flags),
++      mDevice(0), mNeedUnmap(false), mOffset(0), mDevFd(-1)
++{
++    int open_flags = O_RDWR;
++    if (flags & NO_CACHING)
++        open_flags |= O_SYNC;
++
++    int dev_fd = open(device, open_flags);
++    ALOGE_IF(dev_fd<0, "error opening %s: %s", device, strerror(errno));
++    if (dev_fd >= 0) {
++        const size_t pagesize = getpagesize();
++        size = ((size + pagesize-1) & ~(pagesize-1));
++        status_t mapret = mapion(dev_fd, size);
++        if (mapret == NO_ERROR) {
++            mDevice = device;
++        } else {
++            ALOGE("mapion failed : %d", mapret);
++        }
++    }
++}
++
++MemoryHeapBase::MemoryHeapBase(int fd, size_t size, uint32_t flags, uint32_t offset)
++    : mFD(-1), mSize(0), mBase(MAP_FAILED), mFlags(flags),
++      mDevice(0), mNeedUnmap(false), mOffset(0), mDevFd(-1)
++{
++    const size_t pagesize = getpagesize();
++    size = ((size + pagesize-1) & ~(pagesize-1));
++    mapion(dup(fd), size, offset);
++}
++
++status_t MemoryHeapBase::mapion(int dev_fd, size_t size, uint32_t offset)
++{
++    struct ion_allocation_data req_alloc;
++    struct ion_fd_data req_fd;
++    int ret;
++
++    if (size == 0) {
++        ALOGE("mapion size = 0");
++        return BAD_VALUE;
++    }
++
++    if ((mFlags & DONT_MAP_LOCALLY) == 0) {
++        memset(&req_alloc, 0, sizeof(struct ion_allocation_data));
++        req_alloc.len = size;
++        req_alloc.align = PAGE_SIZE;
++        if((mFlags & NO_CACHING) == 0){
++            req_alloc.flags = ION_FLAG_CACHED | ION_FLAG_CACHED_NEEDS_SYNC;
++        }
++        // req_alloc.heap_id_mask = ION_HEAP_TYPE_DMA_MASK;
++        req_alloc.heap_id_mask = ION_HEAP_CARVEOUT_MASK;
++        ret = ioctl(dev_fd, ION_IOC_ALLOC, &req_alloc);
++        if (ret < 0) {
++            ALOGE("ION_IOC_ALLOC failed ret = %d : reason : %s", ret, strerror(errno));
++            goto out;
++        }
++        memset(&req_fd, 0, sizeof(struct ion_fd_data));
++        req_fd.handle = req_alloc.handle;
++        ret = ioctl(dev_fd, ION_IOC_SHARE, &req_fd);
++        if (ret < 0) {
++            ALOGE("ION_IOC_SHARE failed = %d", ret);
++            goto out;
++        }
++
++        void *base = (uint8_t*)mmap(0, size, PROT_READ|PROT_WRITE,
++                                    MAP_SHARED, req_fd.fd, offset);
++        if (base == MAP_FAILED) {
++            ALOGE("mmap(fd=%d, size=%u) failed (%s)",
++                 dev_fd, uint32_t(size), strerror(errno));
++            goto out;
++        }
++        mBase = base;
++        mNeedUnmap = true;
++    } else {
++        mBase = 0;
++        mNeedUnmap = false;
++    }
++    /* buf fd is stored in mFD, node fd is stored in mDevFd */
++    mFD = req_fd.fd;
++    mDevFd = dev_fd;
++    mSize = size;
++    mOffset = offset;
++
++    return NO_ERROR;
++out:
++    close(dev_fd);
++    return -errno;
++}
++
++void MemoryHeapBase::dispose()
++{
++    int fd = android_atomic_or(-1, &mFD);
++    if (fd >= 0) {
++        if (mBase) {
++            if (mNeedUnmap) {
++                munmap(mBase, mSize);
++            }
++
++            if ((mDevFd > 0) && (fd > 0)) {
++                /* using ION memory */
++                struct ion_fd_data req_fd;
++                struct ion_handle_data req;
++                int ret;
++
++                memset(&req_fd, 0, sizeof(struct ion_fd_data));
++                req_fd.fd = fd; /* get buffer fd */
++                ret = ioctl(mDevFd, ION_IOC_IMPORT, &req_fd);
++                if (ret < 0) {
++                    ALOGE("Failed to import ION buffer with buffer fd:%d, ret:%d",
++                         fd, ret);
++                    goto out;
++                }
++                memset(&req, 0, sizeof(struct ion_handle_data));
++                req.handle = req_fd.handle;
++                ret = ioctl(mDevFd, ION_IOC_FREE, &req);
++                if (ret < 0) {
++                    ALOGE("Failed to free ION buffer, ret:%d", ret);
++                }
++out:
++                close(mDevFd);
++            }
++            mBase = 0;
++            mSize = 0;
++            close(fd);
++            mFD = -1;
++            mDevFd = -1;
++        }
++    }
++}
++#else
+ MemoryHeapBase::MemoryHeapBase(const char* device, size_t size, uint32_t flags)
+     : mFD(-1), mSize(0), mBase(MAP_FAILED), mFlags(flags),
+       mDevice(0), mNeedUnmap(false), mOffset(0)
+@@ -103,6 +245,7 @@ status_t MemoryHeapBase::init(int fd, void *base, int size, int flags, const cha
+     mDevice = device;
+     return NO_ERROR;
+ }
++#endif
+ 
+ status_t MemoryHeapBase::mapfd(int fd, size_t size, uint32_t offset)
+ {
+@@ -145,6 +288,25 @@ status_t MemoryHeapBase::mapfd(int fd, size_t size, uint32_t offset)
+     return NO_ERROR;
+ }
+ 
++#ifdef USE_MRVL_ION
++status_t MemoryHeapBase::init(int fd, void *base, int size, int flags, const char* device)
++{
++    if (mFD != -1) {
++        return INVALID_OPERATION;
++    }
++    mFD = fd;
++    mBase = base;
++    mSize = size;
++    mFlags = flags;
++    mDevice = device;
++    return NO_ERROR;
++}
++
++MemoryHeapBase::~MemoryHeapBase()
++{
++    dispose();
++}
++#else
+ MemoryHeapBase::~MemoryHeapBase()
+ {
+     dispose();
+@@ -163,6 +325,7 @@ void MemoryHeapBase::dispose()
+         close(fd);
+     }
+ }
++#endif
+ 
+ int MemoryHeapBase::getHeapID() const {
+     return mFD;
+diff --git a/opengl/include/EGL/eglext.h b/opengl/include/EGL/eglext.h
+index 3b2984a..16b9cd7 100644
+--- a/opengl/include/EGL/eglext.h
++++ b/opengl/include/EGL/eglext.h
+@@ -535,6 +535,18 @@ typedef EGLint (EGLAPIENTRYP PFNEGLDUPNATIVEFENCEFDANDROIDPROC)(EGLDisplay dpy,
+ #define EGL_RECORDABLE_ANDROID			0x3142
+ #endif
+ 
++/* EGL_EXT_get_render_buffer_android
++*/
++#ifdef MRVL_HARDWARE
++#ifndef EGL_ANDROID_get_render_buffer
++#define EGL_ANDROID_get_render_buffer 1
++#ifdef EGL_EGLEXT_PROTOTYPES
++EGLAPI EGLClientBuffer EGLAPIENTRY eglGetRenderBufferANDROID(EGLDisplay dpy, EGLSurface draw);
++#endif
++typedef EGLClientBuffer (EGLAPIENTRYP PFNEGLGETRENDERBUFFERANDROIDPROC) (EGLDisplay dpy, EGLSurface draw);
++#endif
++#endif
++
+ #ifndef EGL_EXT_buffer_age
+ #define EGL_EXT_buffer_age 1
+ #define EGL_BUFFER_AGE_EXT			0x313D
+diff --git a/opengl/libagl/egl.cpp b/opengl/libagl/egl.cpp
+index bbbda76..7200e94 100644
+--- a/opengl/libagl/egl.cpp
++++ b/opengl/libagl/egl.cpp
+@@ -167,6 +167,9 @@ struct egl_surface_t
+     virtual     EGLint      getSwapBehavior() const;
+     virtual     EGLBoolean  swapBuffers();
+     virtual     EGLBoolean  setSwapRectangle(EGLint l, EGLint t, EGLint w, EGLint h);
++#ifdef MRVL_HARDWARE
++    virtual     EGLClientBuffer getRenderBuffer() const;
++#endif
+ protected:
+     GGLSurface              depth;
+ };
+@@ -211,6 +214,11 @@ EGLBoolean egl_surface_t::setSwapRectangle(
+     return EGL_FALSE;
+ }
+ 
++#ifdef MRVL_HARDWARE
++EGLClientBuffer egl_surface_t::getRenderBuffer() const {
++    return 0;
++}
++#endif
+ // ----------------------------------------------------------------------------
+ 
+ struct egl_window_surface_v2_t : public egl_surface_t
+@@ -235,6 +243,9 @@ struct egl_window_surface_v2_t : public egl_surface_t
+     virtual     EGLint      getRefreshRate() const;
+     virtual     EGLint      getSwapBehavior() const;
+     virtual     EGLBoolean  setSwapRectangle(EGLint l, EGLint t, EGLint w, EGLint h);
++#ifdef MRVL_HARDWARE
++    virtual     EGLClientBuffer getRenderBuffer() const;
++#endif
+     
+ private:
+     status_t lock(ANativeWindowBuffer* buf, int usage, void** vaddr);
+@@ -581,6 +592,13 @@ EGLBoolean egl_window_surface_v2_t::setSwapRectangle(
+     return EGL_TRUE;
+ }
+ 
++#ifdef MRVL_HARDWARE
++EGLClientBuffer egl_window_surface_v2_t::getRenderBuffer() const
++{
++    return buffer;
++}
++#endif
++
+ EGLBoolean egl_window_surface_v2_t::bindDrawSurface(ogles_context_t* gl)
+ {
+     GGLSurface buffer;
+@@ -811,6 +829,9 @@ static char const * const gExtensionsString =
+         // "KHR_image_pixmap "
+         "EGL_ANDROID_image_native_buffer "
+         "EGL_ANDROID_swap_rectangle "
++#ifdef MRVL_HARDWARE
++        "EGL_ANDROID_get_render_buffer "
++#endif
+         ;
+ 
+ // ----------------------------------------------------------------------------
+@@ -870,7 +891,11 @@ static const extention_map_t gExtentionMap[] = {
+     { "eglGetSyncAttribKHR",
+             (__eglMustCastToProperFunctionPointerType)&eglGetSyncAttribKHR },
+     { "eglSetSwapRectangleANDROID", 
+-            (__eglMustCastToProperFunctionPointerType)&eglSetSwapRectangleANDROID }, 
++            (__eglMustCastToProperFunctionPointerType)&eglSetSwapRectangleANDROID },
++#ifdef MRVL_HARDWARE
++    { "eglGetRenderBufferANDROID",
++            (__eglMustCastToProperFunctionPointerType)&eglGetRenderBufferANDROID },
++#endif
+ };
+ 
+ /*
+@@ -2168,3 +2193,20 @@ EGLBoolean eglSetSwapRectangleANDROID(EGLDisplay dpy, EGLSurface draw,
+ 
+     return EGL_TRUE;
+ }
++
++#ifdef MRVL_HARDWARE
++EGLClientBuffer eglGetRenderBufferANDROID(EGLDisplay dpy, EGLSurface draw)
++{
++    if (egl_display_t::is_valid(dpy) == EGL_FALSE)
++        return setError(EGL_BAD_DISPLAY, (EGLClientBuffer)0);
++
++    egl_surface_t* d = static_cast<egl_surface_t*>(draw);
++    if (!d->isValid())
++        return setError(EGL_BAD_SURFACE, (EGLClientBuffer)0);
++    if (d->dpy != dpy)
++        return setError(EGL_BAD_DISPLAY, (EGLClientBuffer)0);
++
++    // post the surface
++    return d->getRenderBuffer();
++}
++#endif
+diff --git a/opengl/libs/EGL/eglApi.cpp b/opengl/libs/EGL/eglApi.cpp
+index a9dc7b3..5f5db6f 100644
+--- a/opengl/libs/EGL/eglApi.cpp
++++ b/opengl/libs/EGL/eglApi.cpp
+@@ -97,6 +97,9 @@ extern char const * const gExtensionString  =
+         "EGL_KHR_create_context "
+         "EGL_EXT_create_context_robustness "
+         "EGL_NV_system_time "
++#ifdef MRVL_HARDWARE
++        "EGL_ANDROID_get_render_buffer "
++#endif
+         "EGL_ANDROID_image_native_buffer "      // mandatory
+         "EGL_KHR_wait_sync "                    // strongly recommended
+         "EGL_ANDROID_recordable "               // mandatory
+@@ -144,6 +147,10 @@ static const extention_map_t sExtensionMap[] = {
+             (__eglMustCastToProperFunctionPointerType)&eglGetSystemTimeFrequencyNV },
+     { "eglGetSystemTimeNV",
+             (__eglMustCastToProperFunctionPointerType)&eglGetSystemTimeNV },
++#ifdef MRVL_HARDWARE
++    { "eglGetRenderBufferANDROID",
++            (__eglMustCastToProperFunctionPointerType)&eglGetRenderBufferANDROID },
++#endif
+ 
+     // EGL_KHR_wait_sync
+     { "eglWaitSyncKHR",
+@@ -1520,6 +1527,27 @@ EGLint eglWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags) {
+ // ANDROID extensions
+ // ----------------------------------------------------------------------------
+ 
++# ifdef MRVL_HARDWARE
++EGLClientBuffer eglGetRenderBufferANDROID(EGLDisplay dpy, EGLSurface draw)
++{
++    clearError();
++
++    const egl_display_ptr dp = validate_display(dpy);
++    if (!dp) return EGL_FALSE;
++
++    SurfaceRef _s(dp.get(), draw);
++    if (!_s.get())
++        return setError(EGL_BAD_SURFACE, (EGLClientBuffer*)0);
++
++    egl_surface_t const * const s = get_surface(draw);
++    if (s->cnx->egl.eglGetRenderBufferANDROID) {
++        return s->cnx->egl.eglGetRenderBufferANDROID(
++                dp->disp.dpy, s->surface);
++    }
++    return setError(EGL_BAD_DISPLAY, (EGLClientBuffer*)0);
++}
++#endif
++
+ EGLint eglDupNativeFenceFDANDROID(EGLDisplay dpy, EGLSyncKHR sync)
+ {
+     clearError();
+diff --git a/services/surfaceflinger/DisplayDevice.cpp b/services/surfaceflinger/DisplayDevice.cpp
+index 5f765bd..a779afb 100755
+--- a/services/surfaceflinger/DisplayDevice.cpp
++++ b/services/surfaceflinger/DisplayDevice.cpp
+@@ -246,9 +246,29 @@ void DisplayDevice::swapBuffers(HWComposer& hwc) const {
+     //    (a) we have framebuffer target support (not present on legacy
+     //        devices, where HWComposer::commit() handles things); or
+     //    (b) this is a virtual display
++
++
++    // when (cur== end) we may have to consider wether we need call eglSwapBuffers
++    // caution: this change is to deal with the issue that SurfaceFlinger
++    //  called drawWormHoles() but not call eglSwapBuffers here.
++    //  however, there may have potential risk in case SurfaceFlinger
++    //  didn't call drawWormHoles(). if so, SurfaceFlinger may
++    //  wrongly call eglSwapBuffers one more time.
++
++#ifdef MRVL_HARDWARE
++    const int32_t id = getHwcDisplayId();
++    HWComposer::LayerListIterator cur = hwc.begin(id);
++    const HWComposer::LayerListIterator end = hwc.end(id);
++#endif
++
+     if (hwc.initCheck() != NO_ERROR ||
++#ifdef MRVL_HARDWARE
++            ((hwc.supportsFramebufferTarget() || mType >= DISPLAY_VIRTUAL) &&
++            (hwc.hasGlesComposition(mHwcDisplayId) || (cur==end)))){
++#else
+             (hwc.hasGlesComposition(mHwcDisplayId) &&
+              (hwc.supportsFramebufferTarget() || mType >= DISPLAY_VIRTUAL))) {
++#endif
+         EGLBoolean success = eglSwapBuffers(mDisplay, mSurface);
+         if (!success) {
+             EGLint error = eglGetError();
+diff --git a/services/surfaceflinger/DisplayHardware/HWComposer.cpp b/services/surfaceflinger/DisplayHardware/HWComposer.cpp
+index dd6865d..edf758c 100644
+--- a/services/surfaceflinger/DisplayHardware/HWComposer.cpp
++++ b/services/surfaceflinger/DisplayHardware/HWComposer.cpp
+@@ -604,6 +604,22 @@ bool HWComposer::isConnected(int disp) const {
+     return mDisplayData[disp].connected;
+ }
+ 
++#ifdef MRVL_HARDWARE
++void HWComposer::setEglSurface(int id, void* dpy, void* surface) {
++    if (uint32_t(id)>31 || !mAllocatedDisplayIDs.hasBit(id)) {
++        ALOGD("ignoring unallocated display ID ");
++        return;
++    }
++
++    if(surface == NULL || dpy == NULL){
++        ALOGD("Set the wrong egl parameter !");
++    }
++	
++    mDisplayData[id].list->dpy = dpy;
++    mDisplayData[id].list->sur = surface;
++}
++#endif
++
+ void HWComposer::eventControl(int disp, int event, int enabled) {
+     if (uint32_t(disp)>31 || !mAllocatedDisplayIDs.hasBit(disp)) {
+         ALOGD("eventControl ignoring event %d on unallocated disp %d (en=%d)",
+@@ -1444,7 +1460,11 @@ void HWComposer::dump(String8& result) const {
+                             "BACKGROUND",
+                             "FB TARGET",
+                             "FB_BLIT",
+-                            "UNKNOWN"};
++#ifdef MRVL_HARDWARE
++                            "HWC_2D"};
++#else
++                            "UKNOWN"};
++#endif
+                     if (type >= NELEM(compositionTypeName))
+                         type = NELEM(compositionTypeName) - 1;
+ 
+diff --git a/services/surfaceflinger/DisplayHardware/HWComposer.h b/services/surfaceflinger/DisplayHardware/HWComposer.h
+index 2632323..1a58f17 100644
+--- a/services/surfaceflinger/DisplayHardware/HWComposer.h
++++ b/services/surfaceflinger/DisplayHardware/HWComposer.h
+@@ -275,6 +275,9 @@ public:
+     float getDpiY(int disp) const;
+     bool isConnected(int disp) const;
+ 
++#ifdef MRVL_HARDWARE
++    void setEglSurface(int disp, void* dpy, void* surface);
++#endif
+     status_t setVirtualDisplayProperties(int32_t id, uint32_t w, uint32_t h,
+             uint32_t format);
+ 
+diff --git a/services/surfaceflinger/LayerDim.cpp b/services/surfaceflinger/LayerDim.cpp
+index 4e82bab..a25d730 100644
+--- a/services/surfaceflinger/LayerDim.cpp
++++ b/services/surfaceflinger/LayerDim.cpp
+@@ -57,6 +57,45 @@ bool LayerDim::isVisible() const {
+     return !(s.flags & layer_state_t::eLayerHidden) && s.alpha;
+ }
+ 
++#ifdef MRVL_HARDWARE
++void LayerDim::setGeometry(const sp<const DisplayDevice>& hw,
++            HWComposer::HWCLayerInterface& layer)
++{
++    layer.setDefaultState();
++
++    layer.setSkip(false);
++
++    // this gives us only the "orientation" component of the transform
++    const State& s(getDrawingState());
++    const uint32_t finalTransform = s.transform.getOrientation();
++    // we can only handle simple transformation
++    if (finalTransform & Transform::ROT_INVALID) {
++        layer.setTransform(0);
++    } else {
++        layer.setTransform(finalTransform);
++    }
++
++    // Dim. use higher 16 bit to store alpha
++    layer.setBlending(HWC_BLENDING_DIM | (getDrawingState().alpha << 16));
++
++    const Transform& tr = hw->getTransform();
++    Rect transformedBounds(computeBounds());
++    transformedBounds = tr.transform(transformedBounds);
++
++    // scaling is already applied in transformedBounds
++    layer.setFrame(transformedBounds);
++    layer.setVisibleRegionScreen(tr.transform(visibleRegion));
++}
++
++void LayerDim::setPerFrameData(const sp<const DisplayDevice>& hw,
++            HWComposer::HWCLayerInterface& layer) {
++    Rect crop;
++    crop.clear();
++
++    layer.setCrop(crop);
++    layer.setBuffer(NULL);
++}
++#endif
+ 
+ // ---------------------------------------------------------------------------
+ 
+diff --git a/services/surfaceflinger/LayerDim.h b/services/surfaceflinger/LayerDim.h
+index 6561d7f..2d332d7 100644
+--- a/services/surfaceflinger/LayerDim.h
++++ b/services/surfaceflinger/LayerDim.h
+@@ -39,6 +39,12 @@ public:
+     virtual bool isSecure() const         { return false; }
+     virtual bool isFixedSize() const      { return true; }
+     virtual bool isVisible() const;
++#ifdef MRVL_HARDWARE
++    virtual void setGeometry(const sp<const DisplayDevice>& hw,
++            HWComposer::HWCLayerInterface& layer);
++    virtual void setPerFrameData(const sp<const DisplayDevice>& hw,
++            HWComposer::HWCLayerInterface& layer);
++#endif
+ };
+ 
+ // ---------------------------------------------------------------------------
+diff --git a/services/surfaceflinger/SurfaceFlinger.cpp b/services/surfaceflinger/SurfaceFlinger.cpp
+index 4d6fb82..1f8fc0a 100644
+--- a/services/surfaceflinger/SurfaceFlinger.cpp
++++ b/services/surfaceflinger/SurfaceFlinger.cpp
+@@ -1143,6 +1143,9 @@ void SurfaceFlinger::setUpHWComposer() {
+                         hw->getVisibleLayersSortedByZ());
+                     const size_t count = currentLayers.size();
+                     if (hwc.createWorkList(id, count) == NO_ERROR) {
++#ifdef MRVL_HARDWARE
++						hwc.setEglSurface(id, mEGLDisplay, hw->getEGLSurface()); 
++#endif
+                         HWComposer::LayerListIterator cur = hwc.begin(id);
+                         const HWComposer::LayerListIterator end = hwc.end(id);
+                         for (size_t i=0 ; cur!=end && i<count ; ++i, ++cur) {
+-- 
+2.5.0
+

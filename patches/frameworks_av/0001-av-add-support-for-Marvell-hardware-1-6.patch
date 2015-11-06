@@ -1,0 +1,978 @@
+From f0aeaadcc4fb15b7bcbdcc611bbc29b4041b3cae Mon Sep 17 00:00:00 2001
+From: sub77 <sub77@ymail.com>
+Date: Fri, 6 Nov 2015 01:24:16 +0100
+Subject: [PATCH] av: add support for Marvell hardware (1/6)
+
+Change-Id: Id8bdade0dcc3faea47a2d27e2db0afaeecb056ce
+---
+ include/media/stagefright/ACodec.h                 |   9 +
+ include/media/stagefright/MetaData.h               |   4 +
+ include/media/stagefright/OMXCodec.h               |  16 ++
+ media/libstagefright/ACodec.cpp                    |  97 ++++++++-
+ media/libstagefright/Android.mk                    |   7 +
+ media/libstagefright/OMXCodec.cpp                  | 237 ++++++++++++++++++++-
+ .../StagefrightMetadataRetriever.cpp               |  33 ++-
+ media/libstagefright/include/SoftOMXComponent.h    |   9 +
+ media/libstagefright/omx/Android.mk                |  12 ++
+ media/libstagefright/omx/OMXNodeInstance.cpp       | 124 ++++++++++-
+ media/libstagefright/omx/SoftOMXComponent.cpp      |  29 +++
+ 11 files changed, 567 insertions(+), 10 deletions(-)
+
+diff --git a/include/media/stagefright/ACodec.h b/include/media/stagefright/ACodec.h
+index 18a3100..510b94c 100644
+--- a/include/media/stagefright/ACodec.h
++++ b/include/media/stagefright/ACodec.h
+@@ -31,6 +31,9 @@ namespace android {
+ 
+ struct ABuffer;
+ struct MemoryDealer;
++#ifdef MRVL_HARDWARE
++struct MemoryHeapBase;
++#endif
+ 
+ struct ACodec : public AHierarchicalStateMachine {
+     enum {
+@@ -176,6 +179,9 @@ private:
+     sp<IOMX> mOMX;
+     IOMX::node_id mNode;
+     sp<MemoryDealer> mDealer[2];
++#ifdef MRVL_HARDWARE
++    sp<MemoryHeapBase> mIOMXHeap[2];
++#endif
+ 
+     sp<ANativeWindow> mNativeWindow;
+ 
+@@ -228,6 +234,9 @@ private:
+     status_t cancelBufferToNativeWindow(BufferInfo *info);
+     status_t freeOutputBuffersNotOwnedByComponent();
+     BufferInfo *dequeueBufferFromNativeWindow();
++#ifdef MRVL_HARDWARE
++    status_t initOutputBufferInfo();
++#endif
+ 
+     BufferInfo *findBufferByID(
+             uint32_t portIndex, IOMX::buffer_id bufferID,
+diff --git a/include/media/stagefright/MetaData.h b/include/media/stagefright/MetaData.h
+index fbdc301..5958a7d 100644
+--- a/include/media/stagefright/MetaData.h
++++ b/include/media/stagefright/MetaData.h
+@@ -190,6 +190,10 @@ enum {
+     kKeySampleBits        = 'sbit', // int32_t (audio sample bit-width)
+ };
+ 
++#ifdef MRVL_HARDWARE
++    kKey263AdvancedFeatures = '263A', // Indicate H.263 has advanced features.
++#endif
++
+ enum {
+     kTypeESDS        = 'esds',
+     kTypeAVCC        = 'avcc',
+diff --git a/include/media/stagefright/OMXCodec.h b/include/media/stagefright/OMXCodec.h
+index 5dd99eb..4240ecb 100644
+--- a/include/media/stagefright/OMXCodec.h
++++ b/include/media/stagefright/OMXCodec.h
+@@ -33,6 +33,9 @@ namespace android {
+ 
+ struct MediaCodecList;
+ class MemoryDealer;
++#ifdef MRVL_HARDWARE
++class MemoryHeapBase;
++#endif
+ struct OMXCodecObserver;
+ struct CodecProfileLevel;
+ class SkipCutBuffer;
+@@ -117,6 +120,12 @@ struct OMXCodec : public MediaSource,
+ #ifdef QCOM_HARDWARE
+         kRequiresWMAProComponent              = 0x40000000, //2^30
+ #endif
++
++#ifdef MRVL_HARDWARE
++        kAvoidMemcopyInputRecordingFrames     = 8192,
++        kRequiresBufferPhysicalContinuousOnInputPorts   = 134217728,
++        kRequiresBufferPhysicalContinuousOnOutputPorts  = 268435456,
++#endif
+     };
+ 
+     struct CodecNameAndQuirks {
+@@ -151,6 +160,10 @@ private:
+     // Call this with mLock hold
+     void on_message(const omx_message &msg);
+ 
++#ifdef MRVL_HARDWARE
++    status_t initOutputBufferInfo();
++#endif
++
+     enum State {
+         DEAD,
+         LOADED,
+@@ -220,6 +233,9 @@ private:
+     size_t mCodecSpecificDataIndex;
+ 
+     sp<MemoryDealer> mDealer[2];
++#ifdef MRVL_HARDWARE
++    sp<MemoryHeapBase> mIOMXHeap[2];
++#endif
+ 
+     State mState;
+     Vector<BufferInfo> mPortBuffers[2];
+diff --git a/media/libstagefright/ACodec.cpp b/media/libstagefright/ACodec.cpp
+index 49ad086..032b4f2 100755
+--- a/media/libstagefright/ACodec.cpp
++++ b/media/libstagefright/ACodec.cpp
+@@ -20,6 +20,9 @@
+ #include <media/stagefright/ACodec.h>
+ 
+ #include <binder/MemoryDealer.h>
++#ifdef MRVL_HARDWARE
++#include <binder/MemoryBase.h>
++#endif
+ 
+ #include <media/stagefright/foundation/hexdump.h>
+ #include <media/stagefright/foundation/ABuffer.h>
+@@ -416,6 +419,47 @@ ACodec::ACodec()
+ ACodec::~ACodec() {
+ }
+ 
++#ifdef MRVL_HARDWARE
++status_t ACodec::initOutputBufferInfo(){
++    if (mNativeWindow == NULL){
++        return UNKNOWN_ERROR;
++    }
++    OMX_PARAM_PORTDEFINITIONTYPE def;
++    InitOMXParams(&def);
++    def.nPortIndex = kPortIndexOutput;
++
++    status_t err = mOMX->getParameter(
++            mNode, OMX_IndexParamPortDefinition, &def, sizeof(def));
++    if (err != OK) {
++#ifdef MRVL_HARDWARE
++            size_t defBufSzActual = (def.nBufferSize+getpagesize()-1)&~(getpagesize()-1);//getpagesize() return 4096 currently
++#endif
++        return err;
++    }
++    int minUndequeuedBufs = 0;
++    err = mNativeWindow->query(mNativeWindow.get(),
++            NATIVE_WINDOW_MIN_UNDEQUEUED_BUFFERS, &minUndequeuedBufs);
++    if (err != 0) {
++        ALOGE("NATIVE_WINDOW_MIN_UNDEQUEUED_BUFFERS query failed: %s (%d)",
++                strerror(-err), -err);
++        return err;
++    }
++
++    if (def.nBufferCountActual < def.nBufferCountMin + minUndequeuedBufs) {
++        OMX_U32 newBufferCount = def.nBufferCountMin + minUndequeuedBufs;
++        def.nBufferCountActual = newBufferCount;
++        err = mOMX->setParameter(
++                mNode, OMX_IndexParamPortDefinition, &def, sizeof(def));
++        if (err != OK) {
++            ALOGE("setting nBufferCountActual to %lu failed: %d",
++                    newBufferCount, err);
++            return err;
++        }
++    }
++    return OK;
++}
++#endif
++
+ void ACodec::setNotificationMessage(const sp<AMessage> &msg) {
+     mNotify = msg;
+ }
+@@ -521,10 +565,33 @@ status_t ACodec::allocateBuffersOnPort(OMX_U32 portIndex) {
+ #if defined(MTK_HARDWARE) && defined(ENABLE_MTK_BUF_ADDR_ALIGNMENT)
+             totalSize = def.nBufferCountActual * (((def.nBufferSize + MTK_BUF_ADDR_ALIGNMENT_VALUE-1) & ~(MTK_BUF_ADDR_ALIGNMENT_VALUE-1)) + MTK_BUF_ADDR_ALIGNMENT_VALUE);
+ #endif
++#ifdef MRVL_HARDWARE
++			if (!strncmp(mComponentName.c_str(), "OMX.MARVELL.VIDEO.HW.CODA7542", 18)) {
++				sp<MemoryHeapBase> heap = new MemoryHeapBase("/dev/ion", totalSize, MemoryHeapBase::NO_CACHING);
++				if (heap->heapID() < 0) {
++					ALOGE("Failed to allocate ion memory from %s", "/dev/ion");
++					return UNKNOWN_ERROR;
++				} else {
++					mIOMXHeap[portIndex] = heap;
++				}
++			} else {
++				mDealer[portIndex] = new MemoryDealer(totalSize, "ACodec");
++			}
++#else
+             mDealer[portIndex] = new MemoryDealer(totalSize, "ACodec");
++#endif
+ 
+             for (OMX_U32 i = 0; i < def.nBufferCountActual; ++i) {
+-                sp<IMemory> mem = mDealer[portIndex]->allocate(def.nBufferSize);
++                sp<IMemory> mem;
++#ifdef MRVL_HARDWARE
++				if (!strncmp(mComponentName.c_str(), "OMX.MARVELL.VIDEO.HW.CODA7542", 18)) {
++					mem = new MemoryBase(mIOMXHeap[portIndex], i * defBufSzActual, defBufSzActual);
++				} else {
++					mem = mDealer[portIndex]->allocate(def.nBufferSize);
++				}
++#else
++                mem = mDealer[portIndex]->allocate(def.nBufferSize);
++#endif
+                 CHECK(mem.get() != NULL);
+ 
+                 BufferInfo info;
+@@ -656,8 +723,27 @@ status_t ACodec::configureOutputBuffersFromNativeWindow(
+             def.format.video.nFrameWidth,
+             def.format.video.nFrameHeight,
+             def.format.video.eColorFormat);
+-#endif
++#elif defined(MRVL_HARDWARE)
++    int halFmt = 0;
++    //remapping the color format for mrvl native window implementation
++    if(OMX_COLOR_FormatYUV420Planar == def.format.video.eColorFormat){
++        halFmt = HAL_PIXEL_FORMAT_YCbCr_420_P; // YUV420
++        ALOGI("Native Window Buffer Geometry %lu.%lu - OMX_COLOR_FormatYUV420Planar", def.format.video.nFrameWidth, def.format.video.nFrameHeight);
++    }else if(OMX_COLOR_FormatYUV420SemiPlanar == def.format.video.eColorFormat){
++        halFmt = HAL_PIXEL_FORMAT_YCbCr_420_SP_MRVL; // NV12
++        ALOGI("Native Window Buffer Geometry %lu.%lu - OMX_COLOR_FormatYUV420SemiPlanar", def.format.video.nFrameWidth, def.format.video.nFrameHeight);
++    }else if(OMX_COLOR_FormatCbYCrY == def.format.video.eColorFormat){
++       halFmt = HAL_PIXEL_FORMAT_CbYCrY_422_I; // UYVY
++       ALOGI("Native Window Buffer Geometry %lu.%lu - OMX_COLOR_FormatCbYCrY", def.format.video.nFrameWidth, def.format.video.nFrameHeight);
++    }else{
++        ALOGE("Not support/mapped color format %d!!!", def.format.video.eColorFormat);
++    }
+ 
++    err = native_window_set_buffers_geometry(
++            mNativeWindow.get(),
++            def.format.video.nFrameWidth,
++            def.format.video.nFrameHeight,
++            halFmt);
+     if (err != 0) {
+         ALOGE("native_window_set_buffers_geometry failed: %s (%d)",
+                 strerror(-err), -err);
+@@ -1648,10 +1734,14 @@ status_t ACodec::setupAACCodec(
+     profile.nChannels = numChannels;
+     profile.nSampleRate = sampleRate;
+ 
++#ifdef MRVL_HARDWARE
++    profile.eAACStreamFormat = OMX_AUDIO_AACStreamFormatMP4ADTS;
++#else
+     profile.eAACStreamFormat =
+         isADTS
+             ? OMX_AUDIO_AACStreamFormatMP4ADTS
+             : OMX_AUDIO_AACStreamFormatMP4FF;
++#endif
+ 
+     return mOMX->setParameter(
+             mNode, OMX_IndexParamAudioAac, &profile, sizeof(profile));
+@@ -4709,6 +4799,9 @@ bool ACodec::OutputPortSettingsChangedState::onOMXEvent(
+                 CHECK(mCodec->mBuffers[kPortIndexOutput].isEmpty());
+                 mCodec->mDealer[kPortIndexOutput].clear();
+ 
++#ifdef MRVL_HARDWARE
++                mCodec->initOutputBufferInfo();
++#endif
+                 CHECK_EQ(mCodec->mOMX->sendCommand(
+                             mCodec->mNode, OMX_CommandPortEnable, kPortIndexOutput),
+                          (status_t)OK);
+diff --git a/media/libstagefright/Android.mk b/media/libstagefright/Android.mk
+index af55235..b287bcd 100644
+--- a/media/libstagefright/Android.mk
++++ b/media/libstagefright/Android.mk
+@@ -229,6 +229,13 @@ LOCAL_C_INCLUDES += \
+ 	$(TOP)/hardware/samsung/exynos4/hal/include \
+ 	$(TOP)/hardware/samsung/exynos4/include
+ 
++ifeq ($(BOARD_USES_MRVL_HARDWARE), true)
++LOCAL_CFLAGS += -DMRVL_HARDWARE
++LOCAL_C_INCLUDES += \
++        $(TOP)/hardware/marvell/gralloc \
++        $(TOP)/hardware/libhardware/include/hardware \
++        $(TOP)/hardware/marvell/ipplib/openmax/include
++endif
+ 
+ ifeq ($(BOARD_USE_TI_DUCATI_H264_PROFILE), true)
+ LOCAL_CFLAGS += -DUSE_TI_DUCATI_H264_PROFILE
+diff --git a/media/libstagefright/OMXCodec.cpp b/media/libstagefright/OMXCodec.cpp
+index fc58bfd..59184b0 100644
+--- a/media/libstagefright/OMXCodec.cpp
++++ b/media/libstagefright/OMXCodec.cpp
+@@ -32,6 +32,9 @@
+ 
+ #include <binder/IServiceManager.h>
+ #include <binder/MemoryDealer.h>
++#ifdef MRVL_HARDWARE
++#include <binder/MemoryBase.h>
++#endif
+ #include <binder/ProcessState.h>
+ #include <HardwareAPI.h>
+ #include <media/stagefright/foundation/ADebug.h>
+@@ -84,6 +87,12 @@
+ #include <bufferallocator/OMXCodecBufferAllocator.h>
+ #endif
+ 
++#ifdef MRVL_HARDWARE
++#include "gralloc_priv.h"
++#include "gralloc.h"
++#include "OMX_IppDef.h"
++#endif
++
+ namespace android {
+ 
+ #ifdef USE_SAMSUNG_COLORFORMAT
+@@ -248,7 +257,36 @@ static bool IsSoftwareCodec(const char *componentName) {
+     if (!strncmp("OMX.dolby.", componentName, 10)) {
+         return true;
+     }
+-#endif // DOLBY_UDC
++OMXCodec::getComponentQuirksUDC
++#ifdef MRVL_HARDWARE
++    if (!strcmp("OMX.MARVELL.VIDEO.H264DECODER", componentName)) {
++        return true;
++    }
++
++    if (!strcmp("OMX.MARVELL.VIDEO.MPEG4ASPDECODER", componentName)) {
++        return true;
++    }
++
++    if (!strcmp("OMX.MARVELL.VIDEO.H263DECODER", componentName)) {
++        return true;
++    }
++
++    if (!strcmp("OMX.MARVELL.VIDEO.WMVDECODER", componentName)) {
++        return true;
++    }
++
++    if (!strcmp("OMX.MARVELL.VIDEO.H264ENCODER", componentName)) {
++        return true;
++    }
++
++    if (!strcmp("OMX.MARVELL.VIDEO.MPEG4ENCODER", componentName)) {
++        return true;
++    }
++
++    if (!strcmp("OMX.MARVELL.VIDEO.H263ENCODER", componentName)) {
++        return true;
++    }
++#endif
+     if (!strncmp("OMX.google.", componentName, 11)
+         || !strncmp("OMX.ffmpeg.", componentName, 11)
+         || !strncmp("OMX.PV.", componentName, 7)) {
+@@ -416,7 +454,11 @@ uint32_t OMXCodec::getComponentQuirks(
+         quirks |= kRequiresFlushCompleteEmulation;
+     }
+ #endif // DOLBY_UDC
+-
++#ifdef MRVL_HARDWARE
++    if (info->hasQuirk("avoid-memcpy-input-recording-frames")) {
++        quirks |= kAvoidMemcopyInputRecordingFrames;
++    }
++#endif
+ #ifdef MTK_HARDWARE
+     if (list->codecHasQuirk(
+                 index, "decoder-lies-about-number-of-channels")) {
+@@ -532,6 +574,17 @@ sp<MediaSource> OMXCodec::Create(
+         return NULL;
+     }
+ 
++#ifdef MRVL_HARDWARE
++    int has263AdvFeatures = -1;
++    if (!strcmp(mime,MEDIA_MIMETYPE_VIDEO_H263)) {
++        if (meta->findInt32(kKey263AdvancedFeatures, &has263AdvFeatures)) {
++            ALOGD("H.263 has advanced features: %d", has263AdvFeatures);
++        } else {
++            ALOGD("Could not get H.263 advanced feature info.");
++        }
++    }
++#endif
++
+     sp<OMXCodecObserver> observer = new OMXCodecObserver;
+     IOMX::node_id node = 0;
+ 
+@@ -877,7 +930,13 @@ status_t OMXCodec::configureCodec(const sp<MetaData> &meta) {
+         int32_t numChannels;
+         CHECK(meta->findInt32(kKeyChannelCount, &numChannels));
+ 
+-        setG711Format(numChannels);
++#ifdef MRVL_HARDWARE
++        int32_t sampleRate;
++        CHECK(meta->findInt32(kKeySampleRate, &sampleRate));
++        setRawAudioFormat(kPortIndexInput, sampleRate, numChannels);
++#else
++        setG711Format(numChannels); 
++#endif
+     } else if (!strcasecmp(MEDIA_MIMETYPE_AUDIO_RAW, mMIME)) {
+         CHECK(!mIsEncoder);
+ 
+@@ -1003,6 +1062,23 @@ status_t OMXCodec::configureCodec(const sp<MetaData> &meta) {
+     if (meta->findInt32(kKeyMaxInputSize, &maxInputSize)) {
+         setMinBufferSize(kPortIndexInput, (OMX_U32)maxInputSize);
+     }
++#ifdef MRVL_HARDWARE
++    else if(!mIsEncoder && !strncasecmp(mMIME, "video/", 6)) {
++        //if extractor couldn't provide kKeyMaxInputSize information, need estimate max size according to resolution because most of mrvl omx dec il set ~300kB as input port size, which isn't enough for some stream.
++        int32_t width=640, height=480;//init a default width and height, findInt32(kKeyWidth, ) will update it
++        meta->findInt32(kKeyWidth, &width);
++        meta->findInt32(kKeyHeight, &height);
++
++        //Estimate the Max input sample size as 0.75 * resolution.
++        int32_t EstimatedMaxInputSize = (width * height * 3) >> 2;
++
++        //Limit the size into [4K, 1.5M]
++        if (EstimatedMaxInputSize < (1 << 12)) EstimatedMaxInputSize = 4096;
++        if (EstimatedMaxInputSize > (1 << 20) * 3/2) EstimatedMaxInputSize = (1 << 20) * 3/2;
++
++        setMinBufferSize(kPortIndexInput, EstimatedMaxInputSize);
++    }
++#endif
+ 
+     initOutputFormat(meta);
+ 
+@@ -1035,6 +1111,8 @@ status_t OMXCodec::configureCodec(const sp<MetaData> &meta) {
+         mQuirks &= ~kOutputBuffersAreUnreadable;
+     }
+ 
++
++
+ #ifndef QCOM_HARDWARE
+     if (mNativeWindow != NULL
+         && !mIsEncoder
+@@ -1961,6 +2039,16 @@ OMXCodec::OMXCodec(
+     mPortStatus[kPortIndexInput] = ENABLING;
+     mPortStatus[kPortIndexOutput] = ENABLING;
+ 
++#ifdef MRVL_HARDWARE
++    if(!mOMXLivesLocally){
++        //In case of cross-process, we use memcpy for buffer transfering, e.g.: the VideoEditor encoding case
++        if ((strcmp(componentName, "OMX.MARVELL.VIDEO.HW.CODA7542ENCODER") == 0))
++        {
++            mQuirks &= ~kAvoidMemcopyInputRecordingFrames;
++            mQuirks |= kRequiresAllocateBufferOnInputPorts;
++        }
++    }
++#endif
+     setComponentRole();
+ #ifdef ENABLE_AV_ENHANCEMENTS
+     // cascade a prefetching-source for video playback excluding secure and
+@@ -2115,7 +2203,10 @@ OMXCodec::~OMXCodec() {
+ 
+ status_t OMXCodec::init() {
+     // mLock is held.
+-
++#ifdef MRVL_HARDWARE
++        freeBuffersOnPort(kPortIndexInput, true /* onlyThoseWeOwn */);
++        freeBuffersOnPort(kPortIndexOutput, true /* onlyThoseWeOwn */);
++#endif
+     CHECK_EQ((int)mState, (int)LOADED);
+ 
+     status_t err;
+@@ -2174,6 +2265,30 @@ status_t OMXCodec::allocateBuffers() {
+ }
+ 
+ status_t OMXCodec::allocateBuffersOnPort(OMX_U32 portIndex) {
++#ifdef MRVL_HARDWARE
++    size_t defBufSzActual = (def.nBufferSize+getpagesize()-1)&~(getpagesize()-1);//getpagesize() return 4096 currently
++    CODEC_LOGI("allocating %lu buffers of size %lu(actual sz %lu) on %s port",
++            def.nBufferCountActual, def.nBufferSize, defBufSzActual,
++#endif
++#elif defined(MRVL_HARDWARE)
++    //do nothing
++size_t totalSize = def.nBufferCountActual * def.nBufferSize;
++#ifdef MRVL_HARDWARE
++    size_t totalSize = def.nBufferCountActual * defBufSzActual;
++    if ((!strncmp(mComponentName, "OMX.MARVELL.VIDEO.HW.CODA7542", 18))
++        && (((portIndex == kPortIndexOutput) && (mQuirks & kRequiresBufferPhysicalContinuousOnOutputPorts) && !(mQuirks & kRequiresAllocateBufferOnOutputPorts))
++        || ((portIndex == kPortIndexInput) && (mQuirks & kRequiresBufferPhysicalContinuousOnInputPorts) && !(mQuirks & kRequiresAllocateBufferOnInputPorts)))){
++        sp<MemoryHeapBase> heap = new MemoryHeapBase("/dev/ion", totalSize, MemoryHeapBase::NO_CACHING);
++        if (heap->heapID() < 0) {
++            CODEC_LOGE("Failed to allocate ion memory from %s", "/dev/ion");
++            return UNKNOWN_ERROR;
++        } else {
++            mIOMXHeap[portIndex] = heap;
++        }
++    } else {
++        mDealer[portIndex] = new MemoryDealer(totalSize, "OMXCodec");
++    }
++#else
+ #ifdef MTK_HARDWARE
+     if (!strncmp(mComponentName, "OMX.MTK.", 8)) {
+         return mMtkBufferAllocator->allocateBuffersOnPort(portIndex);
+@@ -2197,6 +2312,9 @@ status_t OMXCodec::allocateBuffersOnPort(OMX_U32 portIndex) {
+             ALOGE("Storing meta data in video buffers is not supported");
+             return err;
+         }
++#ifdef MRVL_HARDWARE
++        initOutputBufferInfo();
++#endif
+     }
+ 
+ #if defined(ENABLE_AV_ENHANCEMENTS) || defined(ENABLE_OFFLOAD_ENHANCEMENTS)
+@@ -2225,7 +2343,18 @@ status_t OMXCodec::allocateBuffersOnPort(OMX_U32 portIndex) {
+     mDealer[portIndex] = new MemoryDealer(totalSize, "OMXCodec");
+ 
+     for (OMX_U32 i = 0; i < def.nBufferCountActual; ++i) {
+-        sp<IMemory> mem = mDealer[portIndex]->allocate(def.nBufferSize);
+++        sp<IMemory> mem;
++#ifdef MRVL_HARDWARE
++        if ((!strncmp(mComponentName, "OMX.MARVELL.VIDEO.HW.CODA7542", 18))
++            && (((portIndex == kPortIndexOutput) && (mQuirks & kRequiresBufferPhysicalContinuousOnOutputPorts) && !(mQuirks & kRequiresAllocateBufferOnOutputPorts))
++            || ((portIndex == kPortIndexInput) && (mQuirks & kRequiresBufferPhysicalContinuousOnInputPorts) && !(mQuirks & kRequiresAllocateBufferOnInputPorts)))){
++            mem = new MemoryBase(mIOMXHeap[portIndex], i * defBufSzActual, defBufSzActual);
++        } else {
++            mem = mDealer[portIndex]->allocate(def.nBufferSize);
++        }
++#else
++        mem = mDealer[portIndex]->allocate(def.nBufferSize);
++#endif
+         CHECK(mem.get() != NULL);
+ 
+         BufferInfo info;
+@@ -2394,6 +2523,27 @@ status_t OMXCodec::allocateOutputBuffersFromNativeWindow() {
+     }
+ 
+ #ifndef USE_SAMSUNG_COLORFORMAT
++#elif defined(MRVL_HARDWARE)
++    int halFmt = 0;
++    //remapping the color format for mrvl native window implementation
++    if(OMX_COLOR_FormatYUV420Planar == def.format.video.eColorFormat){
++        halFmt = HAL_PIXEL_FORMAT_YCbCr_420_P;  // YUV420
++        ALOGI("Native Window Buffer Geometry %lu.%lu - OMX_COLOR_FormatYUV420Planar", def.format.video.nFrameWidth, def.format.video.nFrameHeight);
++    }else if(OMX_COLOR_FormatYUV420SemiPlanar == def.format.video.eColorFormat){
++        halFmt = HAL_PIXEL_FORMAT_YCbCr_420_SP_MRVL; // NV12
++        ALOGI("Native Window Buffer Geometry %lu.%lu - OMX_COLOR_FormatYUV420SemiPlanar", def.format.video.nFrameWidth, def.format.video.nFrameHeight);
++    }else if(OMX_COLOR_FormatCbYCrY == def.format.video.eColorFormat){
++        halFmt = HAL_PIXEL_FORMAT_CbYCrY_422_I;     // UYVY
++        ALOGI("Native Window Buffer Geometry %lu.%lu - OMX_COLOR_FormatCbYCrY", def.format.video.nFrameWidth, def.format.video.nFrameHeight);
++    }else{
++        ALOGE("Not support/mapped color format %d!!!", def.format.video.eColorFormat);
++    }
++#else
++    err = native_window_set_buffers_geometry(
++            mNativeWindow.get(),
++            def.format.video.nFrameWidth,
++            def.format.video.nFrameHeight,
++            halFmt);
+ #ifdef MTK_HARDWARE
+     uint32_t eHalColorFormat;
+     switch (def.format.video.eColorFormat) {
+@@ -2884,6 +3034,15 @@ void OMXCodec::on_message(const omx_message &msg) {
+ 
+             // Buffer could not be released until empty buffer done is called.
+             if (info->mMediaBuffer != NULL) {
++#ifdef MRVL_HARDWARE
++                if (mIsEncoder &&
++                    (mQuirks & kAvoidMemcopyInputRecordingFrames)) {
++                    // If zero-copy mode is enabled this will send the
++                    // input buffer back to the upstream source.
++                    OMX_BUFFERHEADERTYPE *header = (OMX_BUFFERHEADERTYPE *)info->mBuffer;
++                    header->pBuffer = (OMX_U8 *)info->mData;
++                }
++#endif
+ #if defined(OMAP_ENHANCEMENT) || defined(MTK_HARDWARE)
+                 if (mIsEncoder &&
+                     (mQuirks & kAvoidMemcopyInputRecordingFrames)) {
+@@ -3189,6 +3348,9 @@ void OMXCodec::onEvent(OMX_EVENTTYPE event, OMX_U32 data1, OMX_U32 data2) {
+ 
+                 sp<MetaData> oldOutputFormat = mOutputFormat;
+                 initOutputFormat(mSource->getFormat());
++#ifdef MRVL_HARDWARE
++                initOutputBufferInfo();
++#endif
+ 
+                 if (data2 == OMX_IndexConfigCommonOutputCrop &&
+                     formatHasNotablyChanged(oldOutputFormat, mOutputFormat)) {
+@@ -3276,6 +3438,9 @@ void OMXCodec::onCmdComplete(OMX_COMMANDTYPE cmd, OMX_U32 data) {
+ 
+                 sp<MetaData> oldOutputFormat = mOutputFormat;
+                 initOutputFormat(mSource->getFormat());
++#ifdef MRVL_HARDWARE
++                initOutputBufferInfo();
++#endif
+ 
+                 // Don't notify clients if the output port settings change
+                 // wasn't of importance to them, i.e. it may be that just the
+@@ -3980,13 +4145,35 @@ bool OMXCodec::drainInputBuffer(BufferInfo *info) {
+                             + srcBuffer->range_offset(),
+                         srcBuffer->range_length());
+             }
++#elif defined(MRVL_HARDWARE)
++            CHECK(srcBuffer->data() != NULL) ;
++            if (mIsEncoder && (mQuirks & kAvoidMemcopyInputRecordingFrames)) {
++                CHECK(mOMXLivesLocally && offset == 0);
++
++                OMX_BUFFERHEADERTYPE *header =
++                    (OMX_BUFFERHEADERTYPE *)info->mBuffer;
++
++                CHECK(header->pBuffer == info->mData);
++
++                header->pBuffer =
++                    (OMX_U8 *)srcBuffer->data() + srcBuffer->range_offset();
++
++                releaseBuffer = false;
++                void *ptr = NULL;
++                info->mMediaBuffer = srcBuffer;
++            } else {
++                memcpy((uint8_t *)info->mData + offset,
++                        (const uint8_t *)srcBuffer->data()
++                            + srcBuffer->range_offset(),
++                        srcBuffer->range_length());
++            }
+ #else
+             CHECK(srcBuffer->data() != NULL) ;
+             memcpy((uint8_t *)info->mData + offset,
+                     (const uint8_t *)srcBuffer->data()
+                         + srcBuffer->range_offset(),
+                     srcBuffer->range_length());
+-#endif // USE_SAMSUNG_COLORFORMAT
++#endif
+         }
+ 
+         int64_t lastBufferTimeUs;
+@@ -5942,6 +6129,44 @@ void OMXCodec::initNativeWindowCrop() {
+     native_window_set_crop(mNativeWindow.get(), &crop);
+ }
+ 
++#ifdef MRVL_HARDWARE
++status_t OMXCodec::initOutputBufferInfo(){
++    if (mNativeWindow == NULL){
++        return UNKNOWN_ERROR;
++    }
++    OMX_PARAM_PORTDEFINITIONTYPE def;
++    InitOMXParams(&def);
++    def.nPortIndex = kPortIndexOutput;
++
++    status_t err = mOMX->getParameter(
++            mNode, OMX_IndexParamPortDefinition, &def, sizeof(def));
++    if (err != OK) {
++        return err;
++    }
++    int minUndequeuedBufs = 0;
++    err = mNativeWindow->query(mNativeWindow.get(),
++            NATIVE_WINDOW_MIN_UNDEQUEUED_BUFFERS, &minUndequeuedBufs);
++    if (err != 0) {
++        ALOGE("NATIVE_WINDOW_MIN_UNDEQUEUED_BUFFERS query failed: %s (%d)",
++                strerror(-err), -err);
++        return err;
++    }
++
++    if (def.nBufferCountActual < def.nBufferCountMin + minUndequeuedBufs) {
++        OMX_U32 newBufferCount = def.nBufferCountMin + minUndequeuedBufs;
++        def.nBufferCountActual = newBufferCount;
++        err = mOMX->setParameter(
++                mNode, OMX_IndexParamPortDefinition, &def, sizeof(def));
++        if (err != OK) {
++            CODEC_LOGE("setting nBufferCountActual to %lu failed: %d",
++                    newBufferCount, err);
++            return err;
++        }
++    }
++    return OK;
++}
++#endif
++
+ void OMXCodec::initOutputFormat(const sp<MetaData> &inputFormat) {
+     mOutputFormat = new MetaData;
+     mOutputFormat->setCString(kKeyDecoderComponent, mComponentName);
+diff --git a/media/libstagefright/StagefrightMetadataRetriever.cpp b/media/libstagefright/StagefrightMetadataRetriever.cpp
+index b6752b9..d5f9c58 100644
+--- a/media/libstagefright/StagefrightMetadataRetriever.cpp
++++ b/media/libstagefright/StagefrightMetadataRetriever.cpp
+@@ -259,6 +259,33 @@ static VideoFrame *extractVideoFrameWithCodecFlags(
+     CHECK(meta->findInt32(kKeyWidth, &width));
+     CHECK(meta->findInt32(kKeyHeight, &height));
+ 
++#ifdef MRVL_HARDWARE
++    int32_t decodedWidth = width;
++    int32_t decodedHeight = height;
++
++    if(meta->findInt32(kKeyStride, &decodedWidth)){
++        int32_t Format;
++        CHECK(meta->findInt32(kKeyColorFormat, &Format));
++        if (OMX_COLOR_FormatCbYCrY == Format|| OMX_COLOR_FormatYCbYCr == Format){
++            /* convert bytes to pixel */
++            decodedWidth = decodedWidth >> 1;
++        }
++        if (decodedWidth < width){
++            decodedWidth = width;
++        }
++    }else{
++        decodedWidth = width;
++    }
++
++    if(meta->findInt32(kKeySliceHeight, &decodedHeight)){
++        if (height > decodedHeight){
++            decodedHeight = height;
++        }
++    }else{
++        decodedHeight = height;
++    }
++#endif
++
+     int32_t crop_left, crop_top, crop_right, crop_bottom;
+     if (!meta->findRect(
+                 kKeyCropRect,
+@@ -311,7 +338,11 @@ static VideoFrame *extractVideoFrameWithCodecFlags(
+     if (converter.isValid()) {
+         err = converter.convert(
+                 (const uint8_t *)buffer->data() + buffer->range_offset(),
+-                width, height,
++#ifdef MRVL_HARDWARE
++                decodedWidth, decodedHeight,
++#else
++                width, height, 
++#endif
+                 crop_left, crop_top, crop_right, crop_bottom,
+                 frame->mData,
+                 frame->mWidth,
+diff --git a/media/libstagefright/include/SoftOMXComponent.h b/media/libstagefright/include/SoftOMXComponent.h
+index a808611..7f8cefb 100644
+--- a/media/libstagefright/include/SoftOMXComponent.h
++++ b/media/libstagefright/include/SoftOMXComponent.h
+@@ -165,6 +165,15 @@ private:
+             OMX_HANDLETYPE component,
+             OMX_STATETYPE *state);
+ 
++#ifdef MRVL_HARDWARE
++    static OMX_ERRORTYPE GetComponentVersionWrapper(
++        OMX_HANDLETYPE hComponent,
++        OMX_STRING pComponentName,
++        OMX_VERSIONTYPE* pComponentVersion,
++        OMX_VERSIONTYPE* pSpecVersion,
++        OMX_UUIDTYPE* pComponentUUID);
++#endif
++
+     DISALLOW_EVIL_CONSTRUCTORS(SoftOMXComponent);
+ };
+ 
+diff --git a/media/libstagefright/omx/Android.mk b/media/libstagefright/omx/Android.mk
+index 24bebf7..1f244c0 100644
+--- a/media/libstagefright/omx/Android.mk
++++ b/media/libstagefright/omx/Android.mk
+@@ -42,6 +42,18 @@ ifeq ($(BOARD_USES_PROPRIETARY_OMX),SAMSUNG)
+ LOCAL_CFLAGS     += -DSAMSUNG_OMX
+ endif
+ 
++
++ifeq ($(BOARD_USES_MRVL_HARDWARE), true)
++LOCAL_CFLAGS += -DMRVL_HARDWARE
++LOCAL_C_INCLUDES += \
++        $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr/include \
++        $(TOP)/hardware/marvell/gralloc \
++        $(TOP)/hardware/libhardware/include/hardware \
++        $(TOP)/hardware/marvell/ipplib/openmax/include
++LOCAL_ADDITIONAL_DEPENDENCIES := \
++        $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr
++endif
++
+ LOCAL_MODULE:= libstagefright_omx
+ 
+ include $(BUILD_SHARED_LIBRARY)
+diff --git a/media/libstagefright/omx/OMXNodeInstance.cpp b/media/libstagefright/omx/OMXNodeInstance.cpp
+index 7f7b975..5a1e9c3 100644
+--- a/media/libstagefright/omx/OMXNodeInstance.cpp
++++ b/media/libstagefright/omx/OMXNodeInstance.cpp
+@@ -30,6 +30,16 @@
+ #include <media/stagefright/foundation/ADebug.h>
+ #include <media/stagefright/MediaErrors.h>
+ 
++#ifdef MRVL_HARDWARE
++#include <fcntl.h>
++#include <linux/ion.h>
++#include <linux/pxa_ion.h>
++#include <sys/ioctl.h>
++#include "gralloc_priv.h"
++#include "gralloc.h"
++#include "OMX_IppDef.h"
++#endif
++
+ #ifdef MTK_HARDWARE
+ #include <bufferallocator/OMXNodeInstanceBufferHandler.h>
+ #endif
+@@ -336,6 +346,10 @@ status_t OMXNodeInstance::enableGraphicBuffers(
+     OMX_ERRORTYPE err = OMX_GetExtensionIndex(mHandle, name, &index);
+ 
+     if (err != OMX_ErrorNone) {
++#ifdef MRVL_HARDWARE
++        ALOGI("OMX_GetExtensionIndex OMX.google.android.index.enableAndroidNativeBuffers failed, turn to mrvl method");
++        return OK;
++#endif
+         if (enable) {
+             ALOGE("OMX_GetExtensionIndex %s failed", name);
+         }
+@@ -374,8 +388,46 @@ status_t OMXNodeInstance::getGraphicBufferUsage(
+     OMX_ERRORTYPE err = OMX_GetExtensionIndex(mHandle, name, &index);
+ 
+     if (err != OMX_ErrorNone) {
+-        ALOGE("OMX_GetExtensionIndex %s failed", name);
++#ifdef MRVL_HARDWARE
++        // our OMXIL do not support getAndroidNativeBufferUsage index
++        BufferMeta *bufferMeta = new BufferMeta(graphicBuffer);
++        OMX_BUFFERHEADERTYPE *header;
++        void* va;
++
++        android_native_buffer_t* bufHandle = graphicBuffer->getNativeBuffer();
++        private_handle_t *priHandle = private_handle_t::dynamicCast(bufHandle->handle);
++
++        unsigned long paddr = priHandle->physAddr;
++        int size = priHandle->size;
++
++        OMX_U32 usage = GRALLOC_USAGE_HW_RENDER;//Below lock/unlock is just to get va, and needn't cache flush operation. Therefore, set usage as HW_RENDER, it inform unlock() not to do cache flush.
++
++        graphicBuffer->lock(usage, &va);
++        OMX_ERRORTYPE err = OMX_UseBuffer(mHandle, &header, portIndex, bufferMeta ,size, (OMX_U8*)va);
++        graphicBuffer->unlock();
++
++        if (err != OMX_ErrorNone) {
++            ALOGE("Mrvl OMX_UseBuffer failed with error %d (0x%08x)", err, err);
++            delete bufferMeta;
++            bufferMeta = NULL;
++            *buffer = 0;
++            return UNKNOWN_ERROR;
++        }
++        CHECK_EQ(header->pAppPrivate, bufferMeta);
+ 
++        char componentName[128];
++        OMX_GetComponentVersion(mHandle, componentName, NULL, NULL, NULL);
++        if (!strncmp(componentName, "OMX.MARVELL.VIDEO.", 18)) {
++            ((OMX_BUFFERHEADERTYPE_IPPEXT*)header)->nPhyAddr = (OMX_U32)(paddr);
++        }
++        *buffer = makeBufferID(header);
++
++        addActiveBuffer(portIndex, *buffer);
++
++        return OK;
++#else
++        ALOGE("OMX_GetExtensionIndex %s failed", name);
++#endif
+         return StatusFromOMXError(err);
+     }
+ 
+@@ -497,6 +549,70 @@ status_t OMXNodeInstance::useBuffer(
+     }
+ 
+     CHECK_EQ(header->pAppPrivate, buffer_meta);
++    
++    #ifdef MRVL_HARDWARE
++    OMX_PARAM_PORTDEFINITIONTYPE def;
++    def.nSize = sizeof(OMX_PARAM_PORTDEFINITIONTYPE);
++    def.nVersion.s.nVersionMajor = 1;
++    def.nVersion.s.nVersionMinor = 0;
++    def.nVersion.s.nRevision = 0;
++    def.nVersion.s.nStep = 0;
++    def.nPortIndex = portIndex;
++
++    err = OMX_GetParameter(mHandle, OMX_IndexParamPortDefinition, &def);
++    if (err != OMX_ErrorNone)
++    {
++        ALOGE("%s::%d:Error getting OMX_IndexParamPortDefinition", __FUNCTION__, __LINE__);
++        return err;
++    }
++
++   if (OMX_TRUE == def.bBuffersContiguous) {
++        sp<IMemory> mem = params;
++        sp<IMemoryHeap> heap = mem->getMemory();
++        void *va_base = NULL;
++        OMX_S32 offset;
++        int fd, ret;
++        fd = open("/dev/ion", O_RDWR);
++        if (fd < 0) {
++            ALOGE("failed to open /dev/ion, ret:%d", fd);
++            return UNKNOWN_ERROR;
++        }
++
++        /* import buffer fd to get handle */
++        struct ion_fd_data req_fd;
++        memset(&req_fd, 0, sizeof(struct ion_fd_data));
++        req_fd.fd = heap->getHeapID();
++        ret = ioctl(fd, ION_IOC_IMPORT, &req_fd);
++        if (ret < 0) {
++            close(fd);
++            ALOGE("failed to import buffer fd:%d, ret:%d", req_fd.fd, ret);
++            return UNKNOWN_ERROR;
++        }
++        /* fetch physical address */
++        struct ion_custom_data data;
++        struct ion_pxa_region ion_region;
++        memset(&ion_region, 0, sizeof(ion_pxa_region));
++        memset(&data, 0, sizeof(struct ion_custom_data));
++        ion_region.handle = req_fd.handle;
++        data.cmd = ION_PXA_PHYS;
++        data.arg = (unsigned long)&ion_region;
++        ret = ioctl(fd, ION_IOC_CUSTOM, &data);
++        if (ret < 0) {
++            close(fd);
++            ALOGE("failed to get physical address from ION, return error:%d", ret);
++            return UNKNOWN_ERROR;
++        }
++        close(fd);
++        va_base = heap->getBase();
++        offset = header->pBuffer  header->nOffset - (OMX_U8*)va_base;
++        ((OMX_BUFFERHEADERTYPE_IPPEXT*)header)->nPhyAddr = offset  ion_region.addr;
++
++        char componentName[128] = {0};
++        OMX_GetComponentVersion(mHandle, componentName, NULL, NULL, NULL);
++        ALOGD("[%s] useBuffer(port %d) from ion: nPhyAddr = %p\n", componentName, portIndex, ((OMX_BUFFERHEADERTYPE_IPPEXT*)header)->nPhyAddr);
++    }
++#endif
++
+ 
+     *buffer = header;
+ 
+@@ -615,9 +731,15 @@ status_t OMXNodeInstance::useGraphicBuffer(
+     OMX_ERRORTYPE err = OMX_GetExtensionIndex(mHandle, name, &index);
+ 
+     if (err != OMX_ErrorNone) {
++#ifdef MRVL_HARDWARE
++        ALOGI("OMX_GetExtensionIndex OMX.google.android.index.getAndroidNativeBufferUsage failed, turn to mrvl method");
++        *usage |= GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN | GRALLOC_USAGE_PRIVATE_3 | GRALLOC_USAGE_HW_2D;
++        return OK;
++#else
+         ALOGE("OMX_GetExtensionIndex %s failed", name);
+ 
+         return StatusFromOMXError(err);
++#endif
+     }
+ 
+     BufferMeta *bufferMeta = new BufferMeta(graphicBuffer);
+diff --git a/media/libstagefright/omx/SoftOMXComponent.cpp b/media/libstagefright/omx/SoftOMXComponent.cpp
+index b1c34dc..b1e9cc7 100644
+--- a/media/libstagefright/omx/SoftOMXComponent.cpp
++++ b/media/libstagefright/omx/SoftOMXComponent.cpp
+@@ -41,7 +41,11 @@ SoftOMXComponent::SoftOMXComponent(
+     mComponent->pComponentPrivate = this;
+     mComponent->pApplicationPrivate = appData;
+ 
++#ifdef MRVL_HARDWARE
++    mComponent->GetComponentVersion = GetComponentVersionWrapper;
++#else
+     mComponent->GetComponentVersion = NULL;
++#endif
+     mComponent->SendCommand = SendCommandWrapper;
+     mComponent->GetParameter = GetParameterWrapper;
+     mComponent->SetParameter = SetParameterWrapper;
+@@ -254,6 +258,31 @@ OMX_ERRORTYPE SoftOMXComponent::GetStateWrapper(
+     return me->getState(state);
+ }
+ 
++#ifdef MRVL_HARDWARE
++OMX_ERRORTYPE SoftOMXComponent::GetComponentVersionWrapper(
++        OMX_HANDLETYPE component,
++        OMX_STRING pComponentName,
++        OMX_VERSIONTYPE* pComponentVersion,
++        OMX_VERSIONTYPE* pSpecVersion,
++        OMX_UUIDTYPE* pComponentUUID) {
++    SoftOMXComponent *me =
++        (SoftOMXComponent *)
++            ((OMX_COMPONENTTYPE *)component)->pComponentPrivate;
++    if (NULL != pComponentName) {
++        strcpy(pComponentName, me->name());
++    }
++    if (NULL != pComponentVersion) {
++        return OMX_ErrorUndefined;
++    }
++    if (NULL != pSpecVersion) {
++        return OMX_ErrorUndefined;
++    }
++    if (NULL != pComponentUUID) {
++        return OMX_ErrorUndefined;
++    }
++    return OMX_ErrorNone;
++}
++#endif
+ ////////////////////////////////////////////////////////////////////////////////
+ 
+ OMX_ERRORTYPE SoftOMXComponent::sendCommand(
+-- 
+2.5.0
+

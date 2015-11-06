@@ -1,0 +1,158 @@
+From 466a85e51bbbc0107f9f0336baa634968a8cdb05 Mon Sep 17 00:00:00 2001
+From: C457 <android.c357@gmail.com>
+Date: Mon, 17 Aug 2015 06:11:18 -0500
+Subject: [PATCH 2/2] libcutils: add legacy list
+
+* Marvell HAL is built against libcutils, add back missing symbols
+required to load the HAL
+
+Change-Id: I90177977efcf67aebfd2d81b1ca10f2d17a9ab00
+---
+ include/cutils/legacy-list.h | 65 ++++++++++++++++++++++++++++++++++++++++++++
+ libcutils/Android.mk         |  5 ++++
+ libcutils/legacy-list.c      | 45 ++++++++++++++++++++++++++++++
+ 3 files changed, 115 insertions(+)
+ create mode 100644 include/cutils/legacy-list.h
+ create mode 100644 libcutils/legacy-list.c
+
+diff --git a/include/cutils/legacy-list.h b/include/cutils/legacy-list.h
+new file mode 100644
+index 0000000..ee328f1
+--- /dev/null
++++ b/include/cutils/legacy-list.h
+@@ -0,0 +1,65 @@
++/*
++ * Copyright (C) 2008-2013 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef _CUTILS_LIST_H_
++#define _CUTILS_LIST_H_
++
++#include <stddef.h>
++
++#ifdef __cplusplus
++extern "C" {
++#endif /* __cplusplus */
++
++struct listnode
++{
++    struct listnode *next;
++    struct listnode *prev;
++};
++
++#define node_to_item(node, container, member) \
++    (container *) (((char*) (node)) - offsetof(container, member))
++
++#define list_declare(name) \
++    struct listnode name = { \
++        .next = &name, \
++        .prev = &name, \
++    }
++
++#define list_for_each(node, list) \
++    for (node = (list)->next; node != (list); node = node->next)
++
++#define list_for_each_reverse(node, list) \
++    for (node = (list)->prev; node != (list); node = node->prev)
++
++#define list_for_each_safe(node, n, list) \
++    for (node = (list)->next, n = node->next; \
++         node != (list); \
++         node = n, n = node->next)
++
++void list_init(struct listnode *list);
++void list_add_tail(struct listnode *list, struct listnode *item);
++void list_add_head(struct listnode *list, struct listnode *item);
++void list_remove(struct listnode *item);
++
++#define list_empty(list) ((list) == (list)->next)
++#define list_head(list) ((list)->next)
++#define list_tail(list) ((list)->prev)
++
++#ifdef __cplusplus
++};
++#endif /* __cplusplus */
++
++#endif
+diff --git a/libcutils/Android.mk b/libcutils/Android.mk
+index 60d57c5..1a9dc05 100644
+--- a/libcutils/Android.mk
++++ b/libcutils/Android.mk
+@@ -48,6 +48,11 @@ commonSources := \
+ 	iosched_policy.c \
+ 	str_parms.c \
+ 
++ifeq ($(BOARD_USES_LEGACY_LIST),true)
++commonSources += \
++	legacy-list.c
++endif
++
+ commonHostSources := \
+         ashmem-host.c
+ 
+diff --git a/libcutils/legacy-list.c b/libcutils/legacy-list.c
+new file mode 100644
+index 0000000..493e930
+--- /dev/null
++++ b/libcutils/legacy-list.c
+@@ -0,0 +1,45 @@
++/*
++ * Copyright (C) 2008 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include <cutils/legacy-list.h>
++
++void list_init(struct listnode *node)
++{
++    node->next = node;
++    node->prev = node;
++}
++
++void list_add_tail(struct listnode *head, struct listnode *item)
++{
++    item->next = head;
++    item->prev = head->prev;
++    head->prev->next = item;
++    head->prev = item;
++}
++
++void list_add_head(struct listnode *head, struct listnode *item)
++{
++    item->next = head->next;
++    item->prev = head;
++    head->next->prev = item;
++    head->next = item;
++}
++
++void list_remove(struct listnode *item)
++{
++    item->next->prev = item->prev;
++    item->prev->next = item->next;
++}
+-- 
+2.5.0
+
