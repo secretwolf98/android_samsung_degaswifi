@@ -1,6 +1,6 @@
 # Audio
 etc/asound.conf
-etc/Volume.db
+#etc/Volume.db
 lib/hw/audio.primary.mrvl.so
 lib/hw/audio_path.adda.mrvl.so
 lib/hw/audio_path.fm.mrvl.so
@@ -19,12 +19,12 @@ lib/libippsp.so
 lib/libippvp.so
 lib/libsamsungSoundbooster.so
 lib/lib_Samsung_SB_AM_for_ICS_v04004.so
-lib/lib_SamsungRec_V01006.so
+lib/lib_SamsungRec_V03011b.so
 lib/lib_Samsung_Resampler.so
 lib/libsamsungRecord.so
 lib/soundfx/libmrvlpreprocessing.so
-lib/liblvvefs.so
-lib/liblvvewrapper.so
+#lib/liblvvefs.so
+#lib/liblvvewrapper.so
 
 # Audio Alsa-lib
 usr/lib/alsa-lib/libasound_module_ctl_codec.so
@@ -98,12 +98,13 @@ etc/audio_VR/Tx_ControlParams_VR_WIRED_HEADSET_WIDEBAND.txt
 # Bluetooth & WIFI
 etc/firmware/mrvl/bt_cal_data.conf
 etc/firmware/mrvl/bt_init_cfg.conf
-etc/firmware/mrvl/cal_data.conf
+#etc/firmware/mrvl/cal_data.conf
 etc/firmware/mrvl/reg_alpha2
-etc/firmware/mrvl/sd8787_uapsta.bin
-etc/firmware/mrvl/w8787_wlan_SDIO_bt_SDIO.bin
+etc/firmware/mrvl/txpwrlimit_cfg.bin
+etc/firmware/mrvl/sd8887_uapsta.bin
+etc/firmware/mrvl/SDIO8887_SDIO_SDIO.bin
 etc/firmware/mrvl/WlanCalData_ext.conf
-etc/firmware/mrvl/WlanCalData_ext.conf_0
+#etc/firmware/mrvl/WlanCalData_ext.conf_0
 
 # Camera
 lib/hw/camera.mrvl.so
@@ -126,12 +127,12 @@ vendor/lib/libWVStreamControlAPI_L3.so
 vendor/lib/mediadrm/libwvdrmengine.so
 
 # GPS
-etc/AGPS_CA.pem
+#etc/AGPS_CA.pem
 etc/gps.conf
-etc/sirfgps.conf
+#etc/sirfgps.conf
 lib/hw/gps.default.so
-lib/hw/csr.cpd.so
-lib/lib_gsd5t_mode7.so
+#lib/hw/csr.cpd.so
+#lib/lib_gsd5t_mode7.so
 lib/libmtelif.so
 
 # OMX
@@ -166,7 +167,7 @@ lib/librealmediaextractor.so
 lib/libstagefright_mrvl_extractor.so
 
 # Power
-etc/powerpolicy.pxa988.xml
+#etc/powerpolicy.pxa1088.xml
 etc/powerpolicy.xml
 lib/libmsgqueue.so
 lib/libphs_log.so
@@ -200,7 +201,7 @@ etc/tel/ttc/audio_HLPF.nvm
 etc/tel/ttc/audio_misc.nvm
 etc/tel/ttc/audio_MSAmain.nvm
 etc/tel/ttc/audio_ns.nvm
-etc/tel/kunlun/dataOnly/COMCfg.csv
+#etc/tel/kunlun/dataOnly/COMCfg.csv
 etc/tel/kunlun/COMCfg.csv
 etc/tel/kunlun/DipChannelChange.nvm
 etc/tel/kunlun/LyraConfig.nvm
@@ -222,7 +223,7 @@ lib/libatparser.so
 lib/libfactoryutil.so
 lib/libmarvell-ril.so
 lib/libomission_avoidance.so
-lib/libnvaccessor.so
+lib/libnvaccessor_fb.so
 lib/libreference-ril.so
 lib/libril.so
 lib/librilutils.so
@@ -231,7 +232,7 @@ lib/libsecril-client.so
 lib/libsimal.so
 
 # Sensors
-bin/sensord
+#bin/sensord
 lib/hw/sensors.mrvl.so
 
 # Vivante GPU
